@@ -1,0 +1,93 @@
+/* =============================
+   BhootDaya - Global Styles
+   ============================= */
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ---- Hero Section ---- */
+.hero-section {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 80px 0;
+    min-height: 380px;
+    display: flex;
+    align-items: center;
+}
+
+/* ---- Stat Cards ---- */
+.stat-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12) !important;
+}
+
+/* ---- Animal Cards ---- */
+.animal-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.animal-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+}
+
+.animal-img {
+    height: 220px;
+    object-fit: cover;
+    width: 100%;
+    background-color: #f8f9fa;
+}
+
+/* ---- Navbar ---- */
+.navbar-brand {
+    font-size: 1.4rem;
+    letter-spacing: 0.5px;
+}
+
+/* ---- Dashboard tables ---- */
+.table td, .table th {
+    vertical-align: middle;
+}
+
+/* ---- Forms ---- */
+.form-control:focus, .form-select:focus {
+    border-color: #ffc107;
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+}
+
+/* ---- Buttons ---- */
+.btn-warning {
+    color: #212529;
+    font-weight: 600;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+}
+
+/* ---- Image zoom on hover (dashboard tables) ---- */
+.object-fit-cover {
+    object-fit: cover;
+}
+
+/* ---- Alert auto-dismiss animation ---- */
+.alert {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Footer ---- */
+footer {
+    background-color: #212529 !important;
+}

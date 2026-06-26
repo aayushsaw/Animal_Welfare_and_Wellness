@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My Contributions')}"></head>
+<body class="bg-light">
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container my-5">
+
+    <!-- User Welcome Banner -->
+    <div class="bg-warning rounded-3 p-4 mb-5 d-flex align-items-center justify-content-between">
+        <div>
+            <h2 class="fw-bold mb-1">Welcome back, <span th:text="${user.firstName}"></span>!</h2>
+            <p class="mb-0 text-dark">Here's a summary of your contributions to animal welfare.</p>
+        </div>
+        <i class="bi bi-trophy-fill display-3 text-dark opacity-50"></i>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body py-4">
+                    <i class="bi bi-megaphone display-4 text-primary"></i>
+                    <h2 class="fw-bold mt-2" th:text="${postedCount}">0</h2>
+                    <p class="text-muted mb-0">Animals You've Reported</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body py-4">
+                    <i class="bi bi-heart-fill display-4 text-danger"></i>
+                    <h2 class="fw-bold mt-2" th:text="${adoptedCount}">0</h2>
+                    <p class="text-muted mb-0">Animals You've Adopted</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Animals Posted -->
+    <div class="card border-0 shadow-sm mb-5">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-megaphone"></i> Animals Reported by You</h5>
+        </div>
+        <div class="card-body">
+            <div th:if="${postedAnimals.isEmpty()}" class="text-muted text-center py-3">
+                You haven't reported any stray animals yet.
+                <a th:href="@{/animals/publish}" class="text-primary">Post one now!</a>
+            </div>
+            <div class="table-responsive" th:if="${!postedAnimals.isEmpty()}">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Photo</th>
+                            <th>Category</th>
+                            <th>Breed</th>
+                            <th>Location</th>
+                            <th>Color</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="animal, stat : ${postedAnimals}">
+                            <td th:text="${stat.count}"></td>
+                            <td>
+                                <img th:src="${animal.imagePath != null ? animal.imagePath : '/images/placeholder.jpg'}"
+                                     width="60" height="60" class="rounded object-fit-cover" alt="Animal">
+                            </td>
+                            <td class="text-capitalize fw-semibold" th:text="${animal.category}"></td>
+                            <td th:text="${animal.subcategory}"></td>
+                            <td th:text="${animal.location}"></td>
+                            <td th:text="${animal.color}"></td>
+                            <td th:text="${animal.description}"></td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${animal.status.name() == 'AVAILABLE'} ? 'bg-success' : 'bg-secondary'"
+                                      th:text="${animal.status.name() == 'AVAILABLE'} ? 'Available' : 'Adopted'">
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Animals Adopted -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0"><i class="bi bi-heart-fill"></i> Animals Adopted by You</h5>
+        </div>
+        <div class="card-body">
+            <div th:if="${adoptedAnimals.isEmpty()}" class="text-muted text-center py-3">
+                You haven't adopted any animals yet.
+                <a th:href="@{/animals}" class="text-primary">Browse available animals!</a>
+            </div>
+            <div class="table-responsive" th:if="${!adoptedAnimals.isEmpty()}">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Photo</th>
+                            <th>Category</th>
+                            <th>Breed</th>
+                            <th>Location</th>
+                            <th>Color</th>
+                            <th>Description</th>
+                            <th>Original Poster</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="animal, stat : ${adoptedAnimals}">
+                            <td th:text="${stat.count}"></td>
+                            <td>
+                                <img th:src="${animal.imagePath != null ? animal.imagePath : '/images/placeholder.jpg'}"
+                                     width="60" height="60" class="rounded object-fit-cover" alt="Animal">
+                            </td>
+                            <td class="text-capitalize fw-semibold" th:text="${animal.category}"></td>
+                            <td th:text="${animal.subcategory}"></td>
+                            <td th:text="${animal.location}"></td>
+                            <td th:text="${animal.color}"></td>
+                            <td th:text="${animal.description}"></td>
+                            <td th:text="${animal.postedBy?.username}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
