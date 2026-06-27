@@ -33,7 +33,7 @@ A full-stack Java web application built with **Spring Boot**, **Spring Security*
 ### Steps
 
 ```bash
-cd bhootdaya-java
+cd animal-welfare-java
 mvn spring-boot:run
 ```
 
@@ -108,7 +108,7 @@ src/
 
 2. Update `application.properties`:
 ```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/bhootdayadb
+spring.datasource.url=jdbc:mysql://localhost:3306/animalwelfaredb
 spring.datasource.username=root
 spring.datasource.password=yourpassword
 spring.jpa.database-platform=org.hibernate.dialect.MySQL8Dialect
