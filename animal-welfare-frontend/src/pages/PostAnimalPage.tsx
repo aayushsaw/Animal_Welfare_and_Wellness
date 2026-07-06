@@ -80,12 +80,12 @@ export function PostAnimalPage() {
       // 2. Upload images one by one if any exist
       if (images.length > 0) {
         for (const file of images) {
-          await animalsApi.uploadImage(animal.id, file)
+          await animalsApi.uploadImage(animal.id!, file)
         }
       }
 
       toast.success('Animal posted successfully!')
-      navigate(`/animals/${animal.id}`)
+      navigate(`/animals/${animal.id!}`)
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to post animal.')
     } finally {

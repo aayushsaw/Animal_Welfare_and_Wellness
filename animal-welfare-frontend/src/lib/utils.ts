@@ -24,9 +24,12 @@ export function resolveImageUrl(url: string | undefined | null): string {
   return `/${url}`
 }
 
+import type { AnimalImage } from '@/types/animal'
+
 /** Get primary image from an array, fallback to first */
-export function getPrimaryImage(images: Array<{ imageUrl: string; isPrimary: boolean }>): string {
-  const primary = images.find((i) => i.isPrimary)
+export function getPrimaryImage(images: AnimalImage[] | undefined): string {
+  if (!images || images.length === 0) return '/placeholder-animal.jpg'
+  const primary = images.find((i) => i.primary)
   return resolveImageUrl(primary?.imageUrl ?? images[0]?.imageUrl)
 }
 

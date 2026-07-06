@@ -70,7 +70,7 @@ export function NewsDetailPage() {
             </span>
             <span className="flex items-center gap-1">
               <Calendar className="w-3.5 h-3.5" />
-              {formatDate(article.publishedAt)}
+              {formatDate(article.publishDate)}
             </span>
             {article.author && (
               <span className="flex items-center gap-1">
@@ -88,7 +88,7 @@ export function NewsDetailPage() {
           {/* Content */}
           <div className="prose prose-stone max-w-none text-brown-700 text-sm md:text-base leading-relaxed space-y-4 font-sans">
             {/* If content field is empty, fallback to summary */}
-            {(article.content || article.summary)
+            {((article.content || article.summary) || '')
               .split('\n\n')
               .map((para, index) => (
                 <p key={index}>{para}</p>

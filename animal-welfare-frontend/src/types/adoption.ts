@@ -1,24 +1,22 @@
+import { components } from './generated/schema'
+
 export type AdoptionStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED'
 
 export interface AdoptionResponse {
   id: number
   animalId: number
   animalName: string
-  animalImageUrl?: string
+  animalCategory?: string
+  primaryImageUrl?: string
+  requesterId?: number
   requesterUsername: string
-  message?: string
   status: AdoptionStatus
+  message?: string
   reviewNote?: string
-  reviewedBy?: string
-  requestedAt: string
+  reviewerUsername?: string
+  createdAt: string
   reviewedAt?: string
 }
 
-export interface AdoptionRequest {
-  message?: string
-}
-
-export interface AdoptionReviewRequest {
-  decision: 'APPROVED' | 'REJECTED'
-  reviewNote?: string
-}
+export type AdoptionRequest = components['schemas']['AdoptionRequest']
+export type AdoptionReviewRequest = components['schemas']['AdoptionReviewRequest']

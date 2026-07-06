@@ -9,6 +9,6 @@ export interface NewsArticle {
   category: NewsCategory
   tags?: string[]
   featured: boolean
-  publishedAt: string
+  publishDate: string
   author?: string
 }

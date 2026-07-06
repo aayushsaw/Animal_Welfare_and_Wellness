@@ -24,14 +24,14 @@ export const useAuthStore = create<AuthState>()(
 
       setAuth: (response: AuthResponse) => {
         set({
-          accessToken: response.accessToken,
-          refreshToken: response.refreshToken,
-          user: {
+          accessToken: response.accessToken || null,
+          refreshToken: response.refreshToken || null,
+          user: response.username ? {
             username: response.username,
-            email: response.email,
-            roles: response.roles,
-          },
-          isAuthenticated: true,
+            email: response.email || '',
+            roles: response.roles || [],
+          } : null,
+          isAuthenticated: !!response.accessToken,
         })
       },
 

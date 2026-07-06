@@ -58,7 +58,7 @@ export function NewsBanner() {
         </p>
         <div className="flex items-center justify-between mt-4">
           <div className="flex items-center gap-3">
-            <span className="text-sage-300 text-xs">{formatDate(article.publishedAt)}</span>
+            <span className="text-sage-300 text-xs">{formatDate(article.publishDate)}</span>
             <Link
               to={`/news/${article.id}`}
               className="text-xs font-semibold text-white bg-forest-500 hover:bg-forest-400 px-4 py-1.5 rounded-full transition-colors"

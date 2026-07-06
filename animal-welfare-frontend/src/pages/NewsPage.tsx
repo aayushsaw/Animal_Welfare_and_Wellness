@@ -62,7 +62,7 @@ export function NewsPage() {
 
                 <div className="p-5">
                   <span className="text-xs text-brown-400 font-medium block mb-1.5">
-                    {formatDate(art.publishedAt)}
+                    {formatDate(art.publishDate)}
                   </span>
                   <h3 className="font-serif text-lg text-brown-800 font-semibold group-hover:text-forest-600 transition-colors leading-snug line-clamp-2">
                     {art.title}

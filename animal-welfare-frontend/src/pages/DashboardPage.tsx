@@ -113,7 +113,7 @@ export function DashboardPage() {
                       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                         <div className="flex items-center gap-4">
                           <img
-                            src={resolveImageUrl(req.animalImageUrl)}
+                            src={resolveImageUrl(req.primaryImageUrl)}
                             alt={req.animalName}
                             className="w-14 h-14 object-cover rounded-xl bg-cream-200"
                           />
@@ -137,16 +137,16 @@ export function DashboardPage() {
                                 <input
                                   type="text"
                                   placeholder="Add a review note..."
-                                  value={reviewNote[req.id] || ''}
+                                  value={reviewNote[req.id!] || ''}
                                   onChange={(e) =>
-                                    setReviewNote((prev) => ({ ...prev, [req.id]: e.target.value }))
+                                    setReviewNote((prev) => ({ ...prev, [req.id!]: e.target.value }))
                                   }
                                   className="px-3 py-1.5 rounded-lg border border-sage-200 text-xs text-brown-700 focus:outline-none focus:ring-1 focus:ring-forest-400"
                                 />
                                 <div className="flex gap-2 justify-end">
                                   <button
                                     onClick={() =>
-                                      reviewMutation.mutate({ id: req.id, decision: 'APPROVED' })
+                                      reviewMutation.mutate({ id: req.id!, decision: 'APPROVED' })
                                     }
                                     disabled={reviewMutation.isPending}
                                     className="flex items-center gap-1 px-3 py-1.5 bg-forest-500 hover:bg-forest-600 text-white rounded-lg text-xs font-semibold"
@@ -155,7 +155,7 @@ export function DashboardPage() {
                                   </button>
                                   <button
                                     onClick={() =>
-                                      reviewMutation.mutate({ id: req.id, decision: 'REJECTED' })
+                                      reviewMutation.mutate({ id: req.id!, decision: 'REJECTED' })
                                     }
                                     disabled={reviewMutation.isPending}
                                     className="flex items-center gap-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-semibold"
@@ -172,7 +172,7 @@ export function DashboardPage() {
                               </div>
                             ) : (
                               <button
-                                onClick={() => setReviewingId(req.id)}
+                                onClick={() => setReviewingId(req.id!)}
                                 className="px-4 py-2 bg-forest-500 hover:bg-forest-600 text-white text-xs font-semibold rounded-lg"
                               >
                                 Review Request
@@ -182,10 +182,10 @@ export function DashboardPage() {
                         ) : (
                           <span
                             className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                              ADOPTION_STATUS_CONFIG[req.status]?.className || 'bg-gray-100 text-gray-700'
+                              ADOPTION_STATUS_CONFIG[req.status!]?.className || 'bg-gray-100 text-gray-700'
                             }`}
                           >
-                            {ADOPTION_STATUS_CONFIG[req.status]?.label || req.status}
+                            {ADOPTION_STATUS_CONFIG[req.status!]?.label || req.status}
                           </span>
                         )}
                       </div>
@@ -222,15 +222,15 @@ export function DashboardPage() {
                   <div key={req.id} className="py-4 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                       <img
-                        src={resolveImageUrl(req.animalImageUrl)}
+                        src={resolveImageUrl(req.primaryImageUrl)}
                         alt={req.animalName}
                         className="w-14 h-14 object-cover rounded-xl bg-cream-200"
                       />
                       <div>
                         <h3 className="font-semibold text-brown-800 hover:text-forest-600 transition-colors">
-                          <Link to={`/animals/${req.animalId}`}>{req.animalName}</Link>
+                          <Link to={`/animals/${req.animalId!}`}>{req.animalName}</Link>
                         </h3>
-                        <p className="text-xs text-brown-400 mt-0.5">Requested {formatDate(req.requestedAt)}</p>
+                        <p className="text-xs text-brown-400 mt-0.5">Requested {formatDate(req.createdAt)}</p>
                         {req.reviewNote && (
                           <p className="text-xs text-brown-600 mt-1 bg-cream-50 p-2 rounded border border-cream-200 max-w-sm">
                             <span className="font-semibold text-brown-700">Reviewer Note: </span>
@@ -243,16 +243,16 @@ export function DashboardPage() {
                     <div className="flex flex-col items-end gap-2">
                       <span
                         className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                          ADOPTION_STATUS_CONFIG[req.status]?.className || 'bg-gray-100 text-gray-700'
+                          ADOPTION_STATUS_CONFIG[req.status!]?.className || 'bg-gray-100 text-gray-700'
                         }`}
                       >
-                        {ADOPTION_STATUS_CONFIG[req.status]?.label || req.status}
+                        {ADOPTION_STATUS_CONFIG[req.status!]?.label || req.status}
                       </span>
                       {req.status === 'PENDING' && (
                         <button
                           onClick={() => {
                             if (window.confirm('Are you sure you want to cancel this request?')) {
-                              cancelMutation.mutate(req.id)
+                              cancelMutation.mutate(req.id!)
                             }
                           }}
                           disabled={cancelMutation.isPending}

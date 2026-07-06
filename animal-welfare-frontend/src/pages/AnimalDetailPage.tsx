@@ -71,7 +71,7 @@ export function AnimalDetailPage() {
 
   const images: AnimalImage[] = animal.images.length
     ? animal.images
-    : [{ id: 0, imageUrl: '/assets/stray_animals/stray1.jpg', isPrimary: true }]
+    : [{ id: 0, imageUrl: '/assets/stray_animals/stray1.jpg', primary: true }]
 
   const health = HEALTH_STATUS_CONFIG[animal.healthStatus]
 
