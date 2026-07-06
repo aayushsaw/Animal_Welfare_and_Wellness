@@ -1,31 +1,52 @@
 package com.animalwelfare.config;
 
-import com.animalwelfare.service.UserService;
-import lombok.RequiredArgsConstructor;
+import com.animalwelfare.security.JwtAuthFilter;
+import com.animalwelfare.security.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 /**
- * Spring Security configuration.
- * - BCrypt password hashing
- * - Form-based login/logout
- * - Route-level authorization rules
+ * SecurityConfig — stateless JWT-based security configuration.
+ *
+ * Key decisions:
+ * - STATELESS session — no HttpSession, no cookies for auth
+ * - CORS enabled for React frontend (configurable via env)
+ * - CSRF disabled — not needed for stateless JWT APIs
+ * - Public endpoints: auth, public animal listing, news, static assets
+ * - Role-based access: admin endpoints require ROLE_ADMIN
+ * - @EnableMethodSecurity enables @PreAuthorize on service/controller methods
  */
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
+@EnableMethodSecurity
 public class SecurityConfig {
 
-    private final UserService userService;
+    private final UserDetailsServiceImpl userDetailsService;
+    private final JwtAuthFilter jwtAuthFilter;
+
+    public SecurityConfig(UserDetailsServiceImpl userDetailsService, JwtAuthFilter jwtAuthFilter) {
+        this.userDetailsService = userDetailsService;
+        this.jwtAuthFilter      = jwtAuthFilter;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -33,9 +54,9 @@ public class SecurityConfig {
     }
 
     @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
+    public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userService);
+        provider.setUserDetailsService(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
@@ -48,37 +69,53 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .csrf(AbstractHttpConfigurer::disable)
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authenticationProvider(authenticationProvider())
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/", "/home", "/about", "/register",
-                    "/animals", "/animals/filter",
-                    "/css/**", "/js/**", "/images/**", "/uploads/**",
-                    "/h2-console/**"
-                ).permitAll()
+                // Public auth endpoints
+                .requestMatchers("/api/v1/auth/**").permitAll()
+
+                // Public read endpoints — anyone can browse animals and news
+                .requestMatchers(HttpMethod.GET, "/api/v1/animals/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/news/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/stats").permitAll()
+
+                // Static assets
+                .requestMatchers("/assets/**", "/css/**", "/js/**",
+                                 "/favicon.ico", "/index.html").permitAll()
+
+                // Dev tools
+                .requestMatchers("/h2-console/**", "/actuator/health").permitAll()
+                .requestMatchers("/swagger-ui/**", "/api-docs/**").permitAll()
+
+                // Admin-only endpoints
+                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+
+                // Everything else requires authentication
                 .anyRequest().authenticated()
             )
-            .formLogin(form -> form
-                .loginPage("/login")
-                .loginProcessingUrl("/login")
-                .defaultSuccessUrl("/dashboard", true)
-                .failureUrl("/login?error=true")
-                .permitAll()
-            )
-            .logout(logout -> logout
-                .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-                .logoutSuccessUrl("/login?logout=true")
-                .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID")
-                .permitAll()
-            )
-            .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/h2-console/**")
-            )
             .headers(headers -> headers
-                .frameOptions(frame -> frame.sameOrigin())
+                .frameOptions(frame -> frame.sameOrigin()) // for H2 console
             );
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOriginPatterns(List.of("http://localhost:3000", "http://localhost:5173", "*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }
