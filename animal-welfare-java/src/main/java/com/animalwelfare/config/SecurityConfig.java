@@ -2,6 +2,7 @@ package com.animalwelfare.config;
 
 import com.animalwelfare.security.JwtAuthFilter;
 import com.animalwelfare.security.MdcFilter;
+import com.animalwelfare.security.RateLimitingFilter;
 import com.animalwelfare.security.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,15 +48,18 @@ public class SecurityConfig {
     private final UserDetailsServiceImpl userDetailsService;
     private final JwtAuthFilter jwtAuthFilter;
     private final MdcFilter mdcFilter;
+    private final RateLimitingFilter rateLimitingFilter;
     private final Environment env;
 
     public SecurityConfig(UserDetailsServiceImpl userDetailsService,
                           JwtAuthFilter jwtAuthFilter,
                           MdcFilter mdcFilter,
+                          RateLimitingFilter rateLimitingFilter,
                           Environment env) {
         this.userDetailsService = userDetailsService;
         this.jwtAuthFilter      = jwtAuthFilter;
         this.mdcFilter          = mdcFilter;
+        this.rateLimitingFilter = rateLimitingFilter;
         this.env                = env;
     }
 
@@ -86,6 +90,7 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(mdcFilter, JwtAuthFilter.class)
+            .addFilterAfter(rateLimitingFilter, MdcFilter.class)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
                 // Public auth endpoints
