@@ -11,7 +11,8 @@ const postSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
   category: z.enum(['DOG', 'CAT', 'BIRD', 'RABBIT', 'OTHER'] as const),
   breed: z.string().max(100).optional(),
-  estimatedAge: z.string().max(50).optional(),
+  ageYears: z.coerce.number().min(0).max(30).default(0),
+  ageMonths: z.coerce.number().min(0).max(11).default(0),
   gender: z.enum(['MALE', 'FEMALE', 'UNKNOWN'] as const),
   healthStatus: z.enum(['HEALTHY', 'VACCINATED', 'NEEDS_CARE', 'INJURED', 'RECOVERING'] as const),
   location: z.string().min(1, 'Location/Area is required').max(200),
@@ -36,6 +37,8 @@ export function PostAnimalPage() {
       category: 'DOG',
       gender: 'UNKNOWN',
       healthStatus: 'HEALTHY',
+      ageYears: 0,
+      ageMonths: 0,
     },
   })
 
@@ -60,8 +63,19 @@ export function PostAnimalPage() {
   const onSubmit = async (data: PostFormData) => {
     setIsLoading(true)
     try {
+      const totalMonths = (data.ageYears * 12) + data.ageMonths
+      const payload = {
+        name: data.name,
+        category: data.category,
+        breed: data.breed || undefined,
+        ageMonths: totalMonths > 0 ? totalMonths : undefined,
+        gender: data.gender,
+        healthStatus: data.healthStatus,
+        location: data.location,
+        description: data.description || undefined,
+      }
       // 1. Create animal
-      const animal = await animalsApi.create(data)
+      const animal = await animalsApi.create(payload)
 
       // 2. Upload images one by one if any exist
       if (images.length > 0) {
@@ -131,16 +145,35 @@ export function PostAnimalPage() {
               {errors.breed && <p className="mt-1 text-xs text-red-500">{errors.breed.message}</p>}
             </div>
 
-            {/* Estimated Age */}
+            {/* Age input (Years and Months) */}
             <div>
-              <label className="block text-sm font-medium text-brown-700 mb-1.5">Estimated Age (Optional)</label>
-              <input
-                type="text"
-                placeholder="e.g., 6 months, 2 years"
-                {...register('estimatedAge')}
-                className="w-full px-4 py-2.5 rounded-xl border border-sage-200 bg-white text-brown-800 text-sm focus:outline-none focus:ring-2 focus:ring-forest-400"
-              />
-              {errors.estimatedAge && <p className="mt-1 text-xs text-red-500">{errors.estimatedAge.message}</p>}
+              <label className="block text-sm font-medium text-brown-700 mb-1.5">Age (Optional)</label>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <input
+                    type="number"
+                    min="0"
+                    max="30"
+                    placeholder="Years"
+                    {...register('ageYears')}
+                    className="w-full px-4 py-2.5 rounded-xl border border-sage-200 bg-white text-brown-800 text-sm focus:outline-none focus:ring-2 focus:ring-forest-400"
+                  />
+                  <span className="text-[10px] text-brown-400 mt-1 block">Years</span>
+                  {errors.ageYears && <p className="mt-1 text-xs text-red-500">{errors.ageYears.message}</p>}
+                </div>
+                <div>
+                  <input
+                    type="number"
+                    min="0"
+                    max="11"
+                    placeholder="Months"
+                    {...register('ageMonths')}
+                    className="w-full px-4 py-2.5 rounded-xl border border-sage-200 bg-white text-brown-800 text-sm focus:outline-none focus:ring-2 focus:ring-forest-400"
+                  />
+                  <span className="text-[10px] text-brown-400 mt-1 block">Months</span>
+                  {errors.ageMonths && <p className="mt-1 text-xs text-red-500">{errors.ageMonths.message}</p>}
+                </div>
+              </div>
             </div>
 
             {/* Gender */}

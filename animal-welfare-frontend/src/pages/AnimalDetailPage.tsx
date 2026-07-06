@@ -159,9 +159,11 @@ export function AnimalDetailPage() {
                   {animal.breed}
                 </span>
               )}
-              {animal.estimatedAge && (
+              {animal.ageMonths !== undefined && animal.ageMonths !== null && (
                 <span className="px-3 py-1 rounded-full bg-cream-200 text-brown-600 text-sm">
-                  {animal.estimatedAge}
+                  {animal.ageMonths < 12
+                    ? `${animal.ageMonths} month${animal.ageMonths !== 1 ? 's' : ''}`
+                    : `${Math.floor(animal.ageMonths / 12)} year${Math.floor(animal.ageMonths / 12) !== 1 ? 's' : ''}${animal.ageMonths % 12 > 0 ? ` ${animal.ageMonths % 12} mo` : ''}`}
                 </span>
               )}
               <span className="px-3 py-1 rounded-full bg-cream-200 text-brown-600 text-sm">
@@ -176,7 +178,7 @@ export function AnimalDetailPage() {
               </span>
               <span className="flex items-center gap-1.5">
                 <Calendar className="w-4 h-4 text-forest-400" />
-                Posted {formatDate(animal.postedAt)}
+                Posted {formatDate(animal.createdAt)}
               </span>
             </div>
 
@@ -187,7 +189,7 @@ export function AnimalDetailPage() {
             )}
 
             <div className="text-xs text-brown-400 mb-6">
-              Posted by <span className="font-medium text-brown-600">{animal.postedBy}</span>
+              Posted by <span className="font-medium text-brown-600">{animal.postedBy?.fullName || animal.postedBy?.username || 'Unknown'}</span>
             </div>
 
             {/* Adoption action */}

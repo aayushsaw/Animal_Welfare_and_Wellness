@@ -64,7 +64,7 @@ export function AnimalCard({ animal }: AnimalCardProps) {
             </h3>
             <p className="text-sm text-brown-500 mt-0.5">
               {animal.breed ?? CATEGORY_LABELS[animal.category]}
-              {animal.estimatedAge && ` · ${animal.estimatedAge}`}
+              {animal.ageMonths !== undefined && animal.ageMonths !== null && ` · ${animal.ageMonths < 12 ? `${animal.ageMonths}m` : `${Math.floor(animal.ageMonths / 12)}y${animal.ageMonths % 12 > 0 ? ` ${animal.ageMonths % 12}m` : ''}`}`}
               {' · '}{GENDER_ICON[animal.gender]}
             </p>
           </div>
@@ -82,7 +82,7 @@ export function AnimalCard({ animal }: AnimalCardProps) {
           </span>
           <span className="flex items-center gap-1 ml-auto">
             <Calendar className="w-3.5 h-3.5" />
-            {formatDate(animal.postedAt)}
+            {formatDate(animal.createdAt)}
           </span>
         </div>
 
