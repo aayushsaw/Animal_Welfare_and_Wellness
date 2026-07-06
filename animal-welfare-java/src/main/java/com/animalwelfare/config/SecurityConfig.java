@@ -89,12 +89,16 @@ public class SecurityConfig {
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authenticationProvider(authenticationProvider())
-            .addFilterBefore(mdcFilter, JwtAuthFilter.class)
-            .addFilterAfter(rateLimitingFilter, MdcFilter.class)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(rateLimitingFilter, JwtAuthFilter.class)
+            .addFilterBefore(mdcFilter, RateLimitingFilter.class)
             .authorizeHttpRequests(auth -> auth
                 // Public auth endpoints
                 .requestMatchers("/api/v1/auth/**").permitAll()
+
+                // Protected GET animal endpoints (must be defined BEFORE public GET wildcard)
+                .requestMatchers("/api/v1/animals/my-listings").authenticated()
+                .requestMatchers("/api/v1/animals/my-adoptions").authenticated()
 
                 // Public read endpoints — anyone can browse animals and news
                 .requestMatchers(HttpMethod.GET, "/api/v1/animals/**").permitAll()
