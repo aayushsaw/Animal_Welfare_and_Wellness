@@ -1,120 +1,185 @@
 package com.animalwelfare.service;
 
-import com.animalwelfare.dto.AnimalDto;
-import com.animalwelfare.model.Animal;
-import com.animalwelfare.model.Animal.AnimalStatus;
-import com.animalwelfare.model.User;
-import com.animalwelfare.repository.AnimalRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import com.animalwelfare.api.dto.animal.AnimalRequest;
+import com.animalwelfare.api.dto.animal.AnimalResponse;
+import com.animalwelfare.api.response.PagedResponse;
+import com.animalwelfare.domain.model.Animal;
+import com.animalwelfare.domain.model.Animal.AnimalStatus;
+import com.animalwelfare.domain.model.AnimalImage;
+import com.animalwelfare.domain.model.User;
+import com.animalwelfare.domain.repository.AnimalRepository;
+import com.animalwelfare.domain.repository.UserRepository;
+import com.animalwelfare.exception.BusinessException;
+import com.animalwelfare.exception.ResourceNotFoundException;
+import com.animalwelfare.infrastructure.ImageStorageService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.*;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * AnimalService handles all business logic for stray animal management.
+ * AnimalService — all business logic for animal management.
+ *
+ * Business rules preserved from original project + enhanced:
+ * - Any authenticated user can post a stray animal
+ * - Only the poster or an ADMIN can edit/delete their listing
+ * - Animals cannot be deleted once adopted
+ * - Multiple images supported; first upload is auto-set as primary
  */
 @Service
-@RequiredArgsConstructor
 public class AnimalService {
 
     private final AnimalRepository animalRepository;
+    private final UserRepository userRepository;
+    private final ImageStorageService imageStorageService;
 
-    @Value("${app.upload.dir:uploads/animals}")
-    private String uploadDir;
-
-    public List<Animal> getAvailableAnimals() {
-        return animalRepository.findByStatus(AnimalStatus.AVAILABLE);
+    public AnimalService(AnimalRepository animalRepository,
+                         UserRepository userRepository,
+                         ImageStorageService imageStorageService) {
+        this.animalRepository    = animalRepository;
+        this.userRepository      = userRepository;
+        this.imageStorageService = imageStorageService;
     }
 
-    public List<Animal> getAllAnimals() {
-        return animalRepository.findAll();
-    }
-
-    public List<Animal> getAnimalsByUser(User user) {
-        return animalRepository.findByPostedBy(user);
-    }
-
-    public List<Animal> getAnimalsAdoptedBy(User user) {
-        return animalRepository.findByAdoptedBy(user);
-    }
-
-    public List<Animal> filterByCategory(String category) {
-        if (category == null || category.isBlank()) {
-            return getAvailableAnimals();
+    /** Paginated available animals with optional category filter */
+    @Transactional(readOnly = true)
+    public PagedResponse<AnimalResponse> getAvailableAnimals(String category, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Animal> animals;
+        if (category != null && !category.isBlank()) {
+            animals = animalRepository.findByCategoryIgnoreCaseAndStatus(
+                    category.toUpperCase(), AnimalStatus.AVAILABLE, pageable);
+        } else {
+            animals = animalRepository.findByStatus(AnimalStatus.AVAILABLE, pageable);
         }
-        return animalRepository.findAvailableByCategory(category);
+        return new PagedResponse<>(animals.map(AnimalResponse::from));
     }
 
+    /** Single animal by ID — includes images */
+    @Transactional(readOnly = true)
+    public AnimalResponse getById(Long id) {
+        Animal animal = animalRepository.findByIdWithImages(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Animal", id));
+        return AnimalResponse.from(animal);
+    }
+
+    /** All animals posted by a user — for My Contributions dashboard */
+    @Transactional(readOnly = true)
+    public List<AnimalResponse> getByUser(String username) {
+        User user = getUser(username);
+        return animalRepository.findByPostedByWithImages(user).stream()
+                .map(AnimalResponse::from)
+                .collect(Collectors.toList());
+    }
+
+    /** Animals adopted by a user (approved adoption requests) */
+    @Transactional(readOnly = true)
+    public List<AnimalResponse> getAdoptedByUser(String username) {
+        User user = getUser(username);
+        return animalRepository.findAdoptedByUser(user).stream()
+                .map(AnimalResponse::from)
+                .collect(Collectors.toList());
+    }
+
+    /** Post a new stray animal — preserves original core feature */
     @Transactional
-    public Animal publishAnimal(AnimalDto dto, User postedBy) throws IOException {
-        Animal animal = new Animal();
-        animal.setCategory(dto.getCategory());
-        animal.setSubcategory(dto.getSubcategory());
-        animal.setLocation(dto.getLocation());
-        animal.setColor(dto.getColor());
-        animal.setDescription(dto.getDescription());
+    public AnimalResponse create(AnimalRequest request, String username) {
+        User user   = getUser(username);
+        Animal animal = mapToEntity(request, new Animal());
+        animal.setPostedBy(user);
         animal.setStatus(AnimalStatus.AVAILABLE);
-        animal.setPostedBy(postedBy);
-
-        if (dto.getImageFile() != null && !dto.getImageFile().isEmpty()) {
-            String imagePath = saveImage(dto.getImageFile());
-            animal.setImagePath(imagePath);
-        }
-
-        return animalRepository.save(animal);
+        return AnimalResponse.from(animalRepository.save(animal));
     }
 
+    /** Update animal details — poster or admin only */
     @Transactional
-    public boolean adoptAnimal(Long animalId, User adoptingUser) {
-        Optional<Animal> opt = animalRepository.findById(animalId);
-        if (opt.isEmpty()) return false;
-
-        Animal animal = opt.get();
-        if (animal.getStatus() == AnimalStatus.ADOPTED) return false;
-
-        animal.setStatus(AnimalStatus.ADOPTED);
-        animal.setAdoptedBy(adoptingUser);
-        animal.setAdoptedAt(LocalDateTime.now());
-        animalRepository.save(animal);
-        return true;
+    public AnimalResponse update(Long id, AnimalRequest request, String username) {
+        Animal animal = animalRepository.findByIdWithImages(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Animal", id));
+        assertCanModify(animal, username);
+        mapToEntity(request, animal);
+        return AnimalResponse.from(animalRepository.save(animal));
     }
 
-    public long countAvailable() {
-        return animalRepository.countByStatus(AnimalStatus.AVAILABLE);
-    }
-
-    public long countAdopted() {
-        return animalRepository.countByStatus(AnimalStatus.ADOPTED);
-    }
-
-    public long countPostedBy(User user) {
-        return animalRepository.countByPostedBy(user);
-    }
-
-    public long countAdoptedBy(User user) {
-        return animalRepository.countByAdoptedBy(user);
-    }
-
-    private String saveImage(MultipartFile file) throws IOException {
-        Path uploadPath = Paths.get(uploadDir);
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
+    /** Delete an animal listing */
+    @Transactional
+    public void delete(Long id, String username) {
+        Animal animal = animalRepository.findByIdWithImages(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Animal", id));
+        assertCanModify(animal, username);
+        if (animal.getStatus() == AnimalStatus.ADOPTED) {
+            throw new BusinessException("Cannot delete an animal that has already been adopted");
         }
+        animal.getImages().forEach(img -> imageStorageService.delete(img.getPublicId()));
+        animalRepository.delete(animal);
+    }
 
-        String original = file.getOriginalFilename();
-        String ext = (original != null && original.contains("."))
-                ? original.substring(original.lastIndexOf(".")) : ".jpg";
+    /** Add an image to an animal listing */
+    @Transactional
+    public AnimalResponse addImage(Long animalId, MultipartFile file, String username) throws IOException {
+        Animal animal = animalRepository.findByIdWithImages(animalId)
+                .orElseThrow(() -> new ResourceNotFoundException("Animal", animalId));
+        assertCanModify(animal, username);
 
-        String uniqueName = UUID.randomUUID() + ext;
-        Files.copy(file.getInputStream(), uploadPath.resolve(uniqueName), StandardCopyOption.REPLACE_EXISTING);
-        return "/uploads/animals/" + uniqueName;
+        ImageStorageService.UploadResult result = imageStorageService.upload(file, "animals");
+        boolean isPrimary = animal.getImages().isEmpty();
+        AnimalImage image = new AnimalImage(result.url(), result.publicId(), isPrimary);
+        image.setDisplayOrder(animal.getImages().size());
+        animal.addImage(image);
+
+        return AnimalResponse.from(animalRepository.save(animal));
+    }
+
+    /** Platform statistics */
+    @Transactional(readOnly = true)
+    public Map<String, Long> getStats() {
+        return Map.of(
+                "available", animalRepository.countByStatus(AnimalStatus.AVAILABLE),
+                "adopted",   animalRepository.countByStatus(AnimalStatus.ADOPTED),
+                "total",     animalRepository.count()
+        );
+    }
+
+    // ---- Private helpers ----
+
+    private Animal mapToEntity(AnimalRequest req, Animal animal) {
+        animal.setName(req.getName());
+        animal.setCategory(req.getCategory().toUpperCase());
+        animal.setBreed(req.getBreed());
+        animal.setAgeMonths(req.getAgeMonths());
+        animal.setGender(req.getGender() != null ? req.getGender().toUpperCase() : null);
+        animal.setColor(req.getColor());
+        animal.setLocation(req.getLocation());
+        animal.setDescription(req.getDescription());
+        animal.setHealthStatus(req.getHealthStatus());
+        animal.setVaccinated(req.isVaccinated());
+        animal.setNeutered(req.isNeutered());
+        return animal;
+    }
+
+    private void assertCanModify(Animal animal, String username) {
+        boolean isOwner = animal.getPostedBy() != null
+                && animal.getPostedBy().getUsername().equals(username);
+        boolean isAdmin = userRepository.findByUsernameWithRoles(username)
+                .map(u -> u.getRoles().stream()
+                        .anyMatch(r -> r.getName().equals("ROLE_ADMIN")))
+                .orElse(false);
+        if (!isOwner && !isAdmin) {
+            throw new AccessDeniedException("You can only modify animals you posted");
+        }
+    }
+
+    private User getUser(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
     }
 }
