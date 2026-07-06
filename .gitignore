@@ -28,3 +28,11 @@ Thumbs.db
 
 # Spring Boot
 HELP.md
+
+# Environment secrets — never commit real credentials
+.env
+.env.local
+.env.production
+
+# Maven wrapper downloaded binary
+.mvn/wrapper/apache-maven-*-bin.zip
