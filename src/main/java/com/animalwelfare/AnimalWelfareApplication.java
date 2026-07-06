@@ -5,7 +5,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * Animal Welfare and Wellness Platform
- * Main Spring Boot entry point.
+ *
+ * Production-grade Spring Boot REST API for stray animal
+ * adoption, welfare news, and community engagement.
+ *
+ * API Docs:  http://localhost:8080/swagger-ui.html
+ * H2 Console: http://localhost:8080/h2-console
  */
 @SpringBootApplication
 public class AnimalWelfareApplication {
