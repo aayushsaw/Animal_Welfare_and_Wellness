@@ -43,3 +43,12 @@ desktop.ini
 
 # Ignore non-required folder containing backup Tomcat and Angular files
 nonrequired/
+
+# AI context preservation & IDE folders
+AI_HANDOVER.md
+walkthrough.md
+ai_notes.md
+agent_context.md
+.antigravity/
+.cursor/
+.vscode/
