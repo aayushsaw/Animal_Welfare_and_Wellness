@@ -9,32 +9,43 @@ export interface AnimalImage {
   isPrimary: boolean
 }
 
+export interface PostedByInfo {
+  id: number
+  username: string
+  fullName: string
+}
+
 export interface AnimalResponse {
   id: number
   name: string
   category: AnimalCategory
   breed?: string
-  estimatedAge?: string
+  ageMonths?: number
   gender: AnimalGender
-  healthStatus: HealthStatus
-  description?: string
+  color?: string
   location: string
+  description?: string
+  healthStatus: HealthStatus
+  vaccinated: boolean
+  neutered: boolean
   status: AnimalStatus
   images: AnimalImage[]
-  postedBy: string
-  postedAt: string
-  adoptionCount: number
+  postedBy?: PostedByInfo
+  createdAt: string
 }
 
 export interface AnimalRequest {
   name: string
   category: AnimalCategory
   breed?: string
-  estimatedAge?: string
+  ageMonths?: number
   gender: AnimalGender
-  healthStatus: HealthStatus
-  description?: string
+  color?: string
   location: string
+  description?: string
+  healthStatus: HealthStatus
+  vaccinated?: boolean
+  neutered?: boolean
 }
 
 export interface AnimalStats {

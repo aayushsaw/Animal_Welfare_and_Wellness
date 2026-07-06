@@ -1,4 +1,4 @@
-export type NewsCategory = 'RESCUE' | 'ADOPTION' | 'AWARENESS' | 'CAMPAIGN' | 'VOLUNTEER' | 'HEALTH' | 'COMMUNITY'
+export type NewsCategory = 'WELFARE_NEWS' | 'SUCCESS_STORY' | 'CAMPAIGN' | 'NGO_UPDATE'
 
 export interface NewsArticle {
   id: number
