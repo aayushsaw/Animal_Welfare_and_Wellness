@@ -39,6 +39,14 @@ export const CATEGORY_LABELS: Record<string, string> = {
   OTHER: 'Other',
 }
 
+/** News category display name */
+export const NEWS_CATEGORY_LABELS: Record<string, string> = {
+  WELFARE_NEWS: 'Welfare News',
+  SUCCESS_STORY: 'Success Story',
+  CAMPAIGN: 'Campaign',
+  NGO_UPDATE: 'NGO Update',
+}
+
 /** Health status display with color class */
 export const HEALTH_STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   HEALTHY: { label: 'Healthy', className: 'bg-forest-100 text-forest-700' },

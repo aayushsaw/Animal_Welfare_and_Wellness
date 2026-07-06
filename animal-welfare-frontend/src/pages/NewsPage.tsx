@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { newsApi } from '@/api/news.api'
-import { resolveImageUrl, formatDate } from '@/lib/utils'
+import { resolveImageUrl, formatDate, NEWS_CATEGORY_LABELS } from '@/lib/utils'
 
 export function NewsPage() {
   const { data, isLoading } = useQuery({
@@ -55,8 +55,8 @@ export function NewsPage() {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
                   />
-                  <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-300 text-orange-900 shadow-sm capitalize">
-                    {art.category.toLowerCase()}
+                  <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-300 text-orange-900 shadow-sm">
+                    {NEWS_CATEGORY_LABELS[art.category] ?? art.category}
                   </span>
                 </div>
 

@@ -2,7 +2,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, Calendar, User } from 'lucide-react'
 import { newsApi } from '@/api/news.api'
-import { resolveImageUrl, formatDate } from '@/lib/utils'
+import { resolveImageUrl, formatDate, NEWS_CATEGORY_LABELS } from '@/lib/utils'
 
 export function NewsDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -65,8 +65,8 @@ export function NewsDetailPage() {
 
           {/* Meta */}
           <div className="flex flex-wrap gap-4 items-center text-xs text-brown-400 pb-4 border-b border-sage-100">
-            <span className="px-2.5 py-1 rounded-full bg-orange-100 text-orange-800 font-semibold capitalize">
-              {article.category.toLowerCase()}
+            <span className="px-2.5 py-1 rounded-full bg-orange-100 text-orange-800 font-semibold">
+              {NEWS_CATEGORY_LABELS[article.category] ?? article.category}
             </span>
             <span className="flex items-center gap-1">
               <Calendar className="w-3.5 h-3.5" />
