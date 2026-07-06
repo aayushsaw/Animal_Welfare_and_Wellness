@@ -1,0 +1,38 @@
+# Maven
+target/
+*.class
+*.jar
+*.war
+
+# Maven wrapper downloaded files
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+*.launch
+
+# Logs
+*.log
+logs/
+
+# Uploaded files (don't commit user uploads)
+uploads/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Spring Boot
+HELP.md
+
+# Environment secrets — never commit real credentials
+.env
+.env.local
+.env.production
+
+# Maven wrapper downloaded binary
+.mvn/wrapper/apache-maven-*-bin.zip
