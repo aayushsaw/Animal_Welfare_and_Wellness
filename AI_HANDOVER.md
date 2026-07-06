@@ -34,8 +34,11 @@
 - ✅ Database schema with Flyway migrations (V1–V5)
 - ✅ All REST APIs verified working
 - ✅ Frontend complete, fully styled, compiles cleanly, and runs on port 5173 (in `animal-welfare-frontend/`)
-- ❌ Production Docker deployment not configured
-- ❌ Switched to production PostgreSQL instance not yet executed
+- ✅ Hardened Security (CSP, HSTS, Referrer-Policy, FrameOptions, secure CORS)
+- ✅ API Rate Limiting (Bucket4j, 100 req/min per IP)
+- ✅ Multi-stage Dockerization (separate Dockerfiles, orchestrated via `docker-compose.yml`)
+- ✅ GitHub Actions CI/CD pipeline (`ci.yml`)
+- ✅ Automated Test Suites passing successfully (15 backend tests, 8 frontend tests)
 
 ---
 
@@ -66,10 +69,12 @@
 - **Database:** H2 (dev) / PostgreSQL (prod, Flyway migrations managed)
 - **Image Storage:** Cloudinary CDN (prod) / Local file system (dev fallback)
 - **API Docs:** SpringDoc OpenAPI 2.3.0
+- **Rate Limiting:** Bucket4j 8.7.0 (per-IP rate limiting filter)
 
 ### Frontend Stack (`animal-welfare-frontend/`)
 - **Language:** TypeScript 5.6.3 + React 19.2.7
 - **Framework & Bundler:** Vite 5.4.8
+- **Testing:** Vitest 4.1.10 + React Testing Library + JSDom
 - **Styling:** Tailwind CSS v3.4.13 + custom brand HSL theme colors (Forest green, sage, cream, brown, orange)
 - **Components:** Radix UI primitives (`radix-ui/react-*`) + Lucide icons
 - **State Management:** Zustand 5.0.0
@@ -84,9 +89,13 @@
 ### Monorepo Structure
 ```
 Animal Welfare and Wellness/
+├── .github/
+│   └── workflows/
+│       └── ci.yml                     ← GitHub Actions validation CI pipeline
 ├── .git/
 ├── .gitignore                         ← Configured for monorepo paths
 ├── README.md                          ← Monorepo documentation
+├── docker-compose.yml                 ← Full stack container orchestration (Postgres, API, Nginx Web)
 ├── AI_HANDOVER.md                     ← This document
 ├── animal-welfare-java/               ← Backend Spring Boot project
 └── animal-welfare-frontend/           ← Frontend Vite + React project
@@ -126,6 +135,11 @@ src/
 │   └── AdminRoute.tsx                ← Protects dashboard review options
 ├── store/
 │   └── auth.store.ts                 ← Zustand auth persistence (user info & refresh token)
+├── test/
+│   ├── setup.ts                      ← Testing library extensions imports
+│   ├── auth.test.ts                  ← Zustand store state & authentication flow tests
+│   ├── Footer.test.tsx               ← Footer elements, links, contact verification test
+│   └── routes.test.tsx               ← Client-side routing path assertions
 └── types/                            ← Type declarations mapping backend DTO wrappers
 ```
 
@@ -136,8 +150,11 @@ src/
 ### Backend
 - [x] Java 21 REST API architecture with Flyway schema migration tracking (V1-V5)
 - [x] Spring Security + JWT access & refresh token storage and DB rotation
-- [x] CORS allowed for `localhost:5173` (Vite)
+- [x] CORS allowed with configurable environment variable overrides
+- [x] Hardened Security headers (CSP, FrameOptions, HSTS, Referrer-Policy)
+- [x] Rate limiting filter rejecting requests above 100/min per IP with 429 Too Many Requests
 - [x] Complete REST controllers, services, repositories, and OpenAPI definition
+- [x] Mockito extensions subclassing configured to support mocking on JDK 25
 
 ### Frontend
 - [x] Clean monorepo folder division structure setup
@@ -150,31 +167,25 @@ src/
 - [x] LoginPage & RegisterPage form validators, demo notices, and password toggle switches
 - [x] Dashboard page displaying user listings, user request cards, and admin/volunteer request review fields
 - [x] About page reusing the original team photos and mission statement graphics
-- [x] tab favicon set using paw print graphic
+- [x] Tab favicon set using paw print graphic
+- [x] Vitest framework configured with JSDom environment support
 
 ---
 
 ## 6. Pending Tasks
 
-### Priority 1 — Production Configuration
-- [ ] Create `docker-compose.yml` to launch backend, PostgreSQL database, and frontend static container
-- [ ] Swapping to active PostgreSQL database migration script checks
-- [ ] Integration testing with H2 database environment settings
-
-### Priority 2 — Feature Additions
+### Feature Additions
 - [ ] Password reset email templates and service mail sender
 - [ ] Verified Email account link flows
 - [ ] Bookmark / Save animal list option
 
 ---
 
-## 7. Next 5 Recommended Steps (Execution Order)
+## 7. Next Recommended Steps (Execution Order)
 
-1. Create a `docker-compose.yml` in the monorepo root directory.
-2. Draft a `Dockerfile` inside `animal-welfare-frontend/` using a multi-stage Nginx configuration.
-3. Verify production compilation with `npm run build` inside the frontend directory.
-4. Establish environment variables matching `.env.example` in a local `.env` file for docker configurations.
-5. Create integrations tests covering JWT expiration triggers on the backend.
+1. Verify environment variable configuration matches docker-compose settings when deploying to production.
+2. Implement password reset flow via a secure temporary token verification system.
+3. Integrate real SMTP mail sender to replace system output mock logging for emails.
 
 ---
 
@@ -188,3 +199,5 @@ src/
 - Always resolve image URLs using `resolveImageUrl()` utility in `src/lib/utils.ts` to properly handle local static assets and Cloudinary CDN URLs.
 - Always wrap page routes inside `RootLayout` using path definitions in `src/routes/index.tsx`.
 - Keep access tokens exclusively in memory (Zustand state) — only persist the refresh token to localStorage to avoid security leakage.
+- Enforce request rate limiting compliance during API extensions.
+- Ensure all new features are covered by unit and integration tests under the existing test structure.
