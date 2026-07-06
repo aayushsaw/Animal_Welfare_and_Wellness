@@ -23,6 +23,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import org.springframework.core.env.Environment;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
+
 import java.util.List;
 
 /**
@@ -44,11 +47,16 @@ public class SecurityConfig {
     private final UserDetailsServiceImpl userDetailsService;
     private final JwtAuthFilter jwtAuthFilter;
     private final MdcFilter mdcFilter;
+    private final Environment env;
 
-    public SecurityConfig(UserDetailsServiceImpl userDetailsService, JwtAuthFilter jwtAuthFilter, MdcFilter mdcFilter) {
+    public SecurityConfig(UserDetailsServiceImpl userDetailsService,
+                          JwtAuthFilter jwtAuthFilter,
+                          MdcFilter mdcFilter,
+                          Environment env) {
         this.userDetailsService = userDetailsService;
         this.jwtAuthFilter      = jwtAuthFilter;
         this.mdcFilter          = mdcFilter;
+        this.env                = env;
     }
 
     @Bean
@@ -102,9 +110,28 @@ public class SecurityConfig {
                 // Everything else requires authentication
                 .anyRequest().authenticated()
             )
-            .headers(headers -> headers
-                .frameOptions(frame -> frame.sameOrigin()) // for H2 console
-            );
+            .headers(headers -> {
+                headers.frameOptions(frame -> frame.sameOrigin()); // for H2 console
+                headers.contentSecurityPolicy(csp -> csp.policyDirectives(
+                    "default-src 'self'; " +
+                    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+                    "style-src 'self' 'unsafe-inline'; " +
+                    "img-src 'self' data: blob:; " +
+                    "connect-src 'self'; " +
+                    "frame-ancestors 'self';"
+                ));
+                headers.referrerPolicy(referrer -> referrer.policy(ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN));
+                
+                boolean isProd = java.util.Arrays.asList(env.getActiveProfiles()).contains("prod");
+                if (isProd) {
+                    headers.httpStrictTransportSecurity(hsts -> hsts
+                        .includeSubDomains(true)
+                        .maxAgeInSeconds(31536000)
+                    );
+                } else {
+                    headers.httpStrictTransportSecurity(hsts -> hsts.disable());
+                }
+            });
 
         return http.build();
     }
