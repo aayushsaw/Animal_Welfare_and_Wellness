@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── shadcn/ui CSS variables — mapped to our brand palette ─────────────────── */
+@layer base {
+  :root {
+    --background: 30 100% 97%;
+    --foreground: 25 40% 20%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 25 40% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 25 40% 20%;
+
+    --primary: 152 40% 30%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 145 40% 61%;
+    --secondary-foreground: 152 40% 15%;
+
+    --muted: 30 50% 94%;
+    --muted-foreground: 25 25% 50%;
+
+    --accent: 28 85% 66%;
+    --accent-foreground: 25 40% 15%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 145 20% 82%;
+    --input: 145 20% 88%;
+    --ring: 152 40% 30%;
+
+    --radius: 0.625rem;
+  }
+}
+
+/* ── Base styles ────────────────────────────────────────────────────────────── */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-cream-100 text-brown-700;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Lora', Georgia, serif;
+    font-weight: 600;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #FFF8F0; }
+  ::-webkit-scrollbar-thumb { background: #74C69D; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #2D6A4F; }
+}
+
+/* ── Utility classes ────────────────────────────────────────────────────────── */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .hero-overlay {
+    background: linear-gradient(
+      135deg,
+      rgba(27, 67, 50, 0.80) 0%,
+      rgba(45, 106, 79, 0.60) 50%,
+      rgba(116, 198, 157, 0.20) 100%
+    );
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+  }
+
+  .skeleton {
+    @apply animate-pulse bg-cream-200 rounded-md;
+  }
+
+  .section-padding {
+    @apply py-16 lg:py-24;
+  }
+
+  .container-max {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+}
