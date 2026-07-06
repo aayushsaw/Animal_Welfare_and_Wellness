@@ -1,38 +1,45 @@
-# Maven
-target/
-*.class
-*.jar
-*.war
+# Monorepo Root Gitignore
 
-# Maven wrapper downloaded files
-.mvn/wrapper/maven-wrapper.jar
+# Java project build and IDE files
+animal-welfare-java/target/
+animal-welfare-java/*.class
+animal-welfare-java/*.jar
+animal-welfare-java/*.war
+animal-welfare-java/.mvn/wrapper/apache-maven-*-bin.zip
+animal-welfare-java/.idea/
+animal-welfare-java/*.iml
+animal-welfare-java/.classpath
+animal-welfare-java/.project
+animal-welfare-java/.settings/
+animal-welfare-java/*.launch
+animal-welfare-java/*.log
+animal-welfare-java/logs/
+animal-welfare-java/uploads/
+animal-welfare-java/HELP.md
 
-# IDE
-.idea/
-*.iml
-.classpath
-.project
-.settings/
-*.launch
+# React frontend build and dependencies
+animal-welfare-frontend/node_modules/
+animal-welfare-frontend/dist/
+animal-welfare-frontend/.env
+animal-welfare-frontend/.env.local
+animal-welfare-frontend/.env.development.local
+animal-welfare-frontend/.env.test.local
+animal-welfare-frontend/.env.production.local
+animal-welfare-frontend/npm-debug.log*
+animal-welfare-frontend/yarn-debug.log*
+animal-welfare-frontend/yarn-error.log*
+animal-welfare-frontend/pnpm-debug.log*
+animal-welfare-frontend/.oxlintrc.json
 
-# Logs
-*.log
-logs/
-
-# Uploaded files (don't commit user uploads)
-uploads/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Spring Boot
-HELP.md
-
-# Environment secrets — never commit real credentials
+# Root environment files
 .env
 .env.local
 .env.production
 
-# Maven wrapper downloaded binary
-.mvn/wrapper/apache-maven-*-bin.zip
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Ignore non-required folder containing backup Tomcat and Angular files
+nonrequired/
