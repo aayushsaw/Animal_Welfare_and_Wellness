@@ -89,7 +89,7 @@ public class SecurityConfig {
                                  "/favicon.ico", "/index.html").permitAll()
 
                 // Dev tools
-                .requestMatchers("/h2-console/**", "/actuator/health").permitAll()
+                .requestMatchers("/h2-console/**", "/actuator/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/api-docs/**").permitAll()
 
                 // Admin-only endpoints
