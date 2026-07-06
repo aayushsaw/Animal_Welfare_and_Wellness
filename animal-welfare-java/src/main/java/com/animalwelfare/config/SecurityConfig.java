@@ -1,6 +1,7 @@
 package com.animalwelfare.config;
 
 import com.animalwelfare.security.JwtAuthFilter;
+import com.animalwelfare.security.MdcFilter;
 import com.animalwelfare.security.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,10 +43,12 @@ public class SecurityConfig {
 
     private final UserDetailsServiceImpl userDetailsService;
     private final JwtAuthFilter jwtAuthFilter;
+    private final MdcFilter mdcFilter;
 
-    public SecurityConfig(UserDetailsServiceImpl userDetailsService, JwtAuthFilter jwtAuthFilter) {
+    public SecurityConfig(UserDetailsServiceImpl userDetailsService, JwtAuthFilter jwtAuthFilter, MdcFilter mdcFilter) {
         this.userDetailsService = userDetailsService;
         this.jwtAuthFilter      = jwtAuthFilter;
+        this.mdcFilter          = mdcFilter;
     }
 
     @Bean
@@ -74,6 +77,7 @@ public class SecurityConfig {
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authenticationProvider(authenticationProvider())
+            .addFilterBefore(mdcFilter, JwtAuthFilter.class)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
                 // Public auth endpoints
