@@ -11,11 +11,13 @@ import { NewsPage } from '@/pages/NewsPage'
 import { NewsDetailPage } from '@/pages/NewsDetailPage'
 import { AboutPage } from '@/pages/AboutPage'
 import { ProtectedRoute } from './ProtectedRoute'
+import { RouteErrorBoundary } from '@/components/common/ErrorBoundary'
 
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <RootLayout />,
+    errorElement: <RouteErrorBoundary />,
     children: [
       {
         index: true,
