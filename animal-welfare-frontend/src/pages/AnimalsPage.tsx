@@ -59,6 +59,7 @@ export function AnimalsPage() {
             <button
               key={cat.value}
               onClick={() => handleCategoryChange(cat.value)}
+              data-testid={`category-filter-${cat.value.toLowerCase()}`}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 category === cat.value
                   ? 'bg-forest-500 text-white shadow-sm'

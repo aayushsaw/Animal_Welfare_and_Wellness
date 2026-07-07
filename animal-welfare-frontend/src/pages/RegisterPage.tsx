@@ -103,6 +103,7 @@ export function RegisterPage() {
                 <input
                   id="firstName"
                   type="text"
+                  data-testid="firstname-input"
                   autoComplete="given-name"
                   placeholder="Aayush"
                   {...register('firstName')}
@@ -119,6 +120,7 @@ export function RegisterPage() {
                 <input
                   id="lastName"
                   type="text"
+                  data-testid="lastname-input"
                   autoComplete="family-name"
                   placeholder="Saw"
                   {...register('lastName')}
@@ -137,6 +139,7 @@ export function RegisterPage() {
               <input
                 id="username"
                 type="text"
+                data-testid="username-input"
                 autoComplete="username"
                 placeholder="aayush_saw"
                 {...register('username')}
@@ -154,6 +157,7 @@ export function RegisterPage() {
               <input
                 id="email"
                 type="email"
+                data-testid="email-input"
                 autoComplete="email"
                 placeholder="you@example.com"
                 {...register('email')}
@@ -172,6 +176,7 @@ export function RegisterPage() {
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
+                  data-testid="password-input"
                   autoComplete="new-password"
                   placeholder="At least 8 characters"
                   {...register('password')}
@@ -192,6 +197,7 @@ export function RegisterPage() {
 
             <button
               type="submit"
+              data-testid="register-submit"
               disabled={isLoading}
               className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-forest-500 hover:bg-forest-600 disabled:bg-forest-300 text-white font-semibold rounded-xl transition-all shadow-sm text-sm mt-2"
             >

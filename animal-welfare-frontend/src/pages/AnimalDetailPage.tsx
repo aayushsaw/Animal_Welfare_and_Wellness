@@ -204,6 +204,7 @@ export function AnimalDetailPage() {
                       }
                       setShowAdoptForm(true)
                     }}
+                    data-testid="request-adoption-btn"
                     className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-orange-400 hover:bg-orange-300 text-white font-semibold rounded-xl transition-all shadow-sm text-base"
                   >
                     <Heart className="w-5 h-5 fill-white" />
@@ -218,6 +219,7 @@ export function AnimalDetailPage() {
                     <textarea
                       value={adoptMessage}
                       onChange={(e) => setAdoptMessage(e.target.value)}
+                      data-testid="adopt-message-input"
                       placeholder={`I would love to adopt ${animal.name} because…`}
                       rows={4}
                       className="w-full px-4 py-3 rounded-xl border border-sage-200 text-sm text-brown-700 placeholder-brown-300 focus:outline-none focus:ring-2 focus:ring-forest-400 resize-none"
@@ -231,6 +233,7 @@ export function AnimalDetailPage() {
                       </button>
                       <button
                         onClick={() => adoptMutation.mutate()}
+                        data-testid="adopt-submit-btn"
                         disabled={adoptMutation.isPending}
                         className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-forest-500 hover:bg-forest-600 text-white text-sm font-semibold transition-colors"
                       >

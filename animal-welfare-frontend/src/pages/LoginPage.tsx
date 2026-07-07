@@ -106,6 +106,7 @@ export function LoginPage() {
               <input
                 id="username"
                 type="text"
+                data-testid="username-input"
                 autoComplete="username"
                 placeholder="Enter your username"
                 {...register('username')}
@@ -124,6 +125,7 @@ export function LoginPage() {
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
+                  data-testid="password-input"
                   autoComplete="current-password"
                   placeholder="Enter your password"
                   {...register('password')}
@@ -145,6 +147,7 @@ export function LoginPage() {
 
             <button
               type="submit"
+              data-testid="login-submit"
               disabled={isLoading}
               className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-forest-500 hover:bg-forest-600 disabled:bg-forest-300 text-white font-semibold rounded-xl transition-all shadow-sm text-sm"
             >

@@ -100,6 +100,7 @@ export function Navbar() {
                 <div className="relative">
                   <button
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    data-testid="navbar-profile-btn"
                     className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-forest-50 transition-colors"
                   >
                     <div className="w-8 h-8 rounded-full bg-forest-500 flex items-center justify-center text-white text-sm font-semibold">
@@ -114,6 +115,7 @@ export function Navbar() {
                       <Link
                         to="/dashboard"
                         onClick={() => setIsProfileOpen(false)}
+                        data-testid="navbar-dashboard"
                         className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-brown-700 hover:bg-cream-100 transition-colors"
                       >
                         <LayoutDashboard className="w-4 h-4 text-forest-500" />
@@ -130,6 +132,7 @@ export function Navbar() {
                       <div className="my-1 border-t border-sage-100" />
                       <button
                         onClick={handleLogout}
+                        data-testid="navbar-logout"
                         className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
                       >
                         <LogOut className="w-4 h-4" />
@@ -143,6 +146,7 @@ export function Navbar() {
               <>
                 <Link
                   to="/login"
+                  data-testid="navbar-login"
                   className="px-4 py-2 text-sm font-medium text-brown-700 hover:text-forest-600 transition-colors"
                 >
                   Sign In

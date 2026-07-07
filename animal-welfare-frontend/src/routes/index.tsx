@@ -1,17 +1,35 @@
+import { lazy } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { RootLayout } from '@/components/layout/RootLayout'
 import { HomePage } from '@/pages/HomePage'
 import { AnimalsPage } from '@/pages/AnimalsPage'
-import { AnimalDetailPage } from '@/pages/AnimalDetailPage'
-import { LoginPage } from '@/pages/LoginPage'
-import { RegisterPage } from '@/pages/RegisterPage'
-import { DashboardPage } from '@/pages/DashboardPage'
-import { PostAnimalPage } from '@/pages/PostAnimalPage'
-import { NewsPage } from '@/pages/NewsPage'
-import { NewsDetailPage } from '@/pages/NewsDetailPage'
-import { AboutPage } from '@/pages/AboutPage'
 import { ProtectedRoute } from './ProtectedRoute'
 import { RouteErrorBoundary } from '@/components/common/ErrorBoundary'
+
+const AnimalDetailPage = lazy(() =>
+  import('@/pages/AnimalDetailPage').then((m) => ({ default: m.AnimalDetailPage }))
+)
+const LoginPage = lazy(() =>
+  import('@/pages/LoginPage').then((m) => ({ default: m.LoginPage }))
+)
+const RegisterPage = lazy(() =>
+  import('@/pages/RegisterPage').then((m) => ({ default: m.RegisterPage }))
+)
+const DashboardPage = lazy(() =>
+  import('@/pages/DashboardPage').then((m) => ({ default: m.DashboardPage }))
+)
+const PostAnimalPage = lazy(() =>
+  import('@/pages/PostAnimalPage').then((m) => ({ default: m.PostAnimalPage }))
+)
+const NewsPage = lazy(() =>
+  import('@/pages/NewsPage').then((m) => ({ default: m.NewsPage }))
+)
+const NewsDetailPage = lazy(() =>
+  import('@/pages/NewsDetailPage').then((m) => ({ default: m.NewsDetailPage }))
+)
+const AboutPage = lazy(() =>
+  import('@/pages/AboutPage').then((m) => ({ default: m.AboutPage }))
+)
 
 export const router = createBrowserRouter([
   {

@@ -26,6 +26,7 @@ export function AnimalCard({ animal }: AnimalCardProps) {
   return (
     <Link
       to={`/animals/${animal.id}`}
+      data-testid="animal-card"
       className="group block bg-white rounded-2xl overflow-hidden shadow-sm border border-sage-100 card-hover"
     >
       {/* Image */}
@@ -59,7 +60,10 @@ export function AnimalCard({ animal }: AnimalCardProps) {
       <div className="p-4">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <h3 className="font-serif font-semibold text-brown-800 text-lg leading-tight group-hover:text-forest-600 transition-colors">
+            <h3
+              data-testid="animal-card-name"
+              className="font-serif font-semibold text-brown-800 text-lg leading-tight group-hover:text-forest-600 transition-colors"
+            >
               {animal.name}
             </h3>
             <p className="text-sm text-brown-500 mt-0.5">
