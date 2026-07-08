@@ -1,144 +1,201 @@
-# 🐾 Animal Welfare and Wellness Platform
+# 🐾 Animal Welfare & Wellness Community Platform
 
-> A production-grade full-stack monorepo platform connecting stray animals with loving families.
-> Built with Java 21 · Spring Boot 3 · React 19 · TypeScript · Tailwind CSS · H2/PostgreSQL · Cloudinary
+> A production-grade, containerized full-stack platform designed to connect stray animals with loving families, optimize rescue workflows, and facilitate volunteer moderation.
 
-[![Java](https://img.shields.io/badge/Java-21-orange)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.2-brightgreen)](https://spring.io/projects/spring-boot)
-[![React](https://img.shields.io/badge/React-19.2-blue)](https://react.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-cyan)](https://tailwindcss.com/)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-
----
-
-## What is this?
-
-Animal Welfare and Wellness is a community platform for:
-- **Rescuers** to post stray animals they've found
-- **Adopters** to browse and request to adopt animals
-- **Volunteers & NGOs** to review adoption requests
-- **Admins** to moderate the platform
-
-The platform grew from a simple Angular proof-of-concept (BhootDaya) into a production-ready monorepo comprising a robust Java REST API and a beautifully designed React SPA, preserving all original animals, news content, and welfare campaign assets from the original project.
+[![CI Pipeline](https://github.com/aayushsaw/Animal_Welfare_and_Wellness/actions/workflows/ci.yml/badge.svg)](https://github.com/aayushsaw/Animal_Welfare_and_Wellness/actions/workflows/ci.yml)
+[![Java Version](https://img.shields.io/badge/Java-21%2B-orange.svg?style=flat&logo=openjdk)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.2-brightgreen.svg?style=flat&logo=springboot)](https://spring.io/)
+[![React](https://img.shields.io/badge/React-19.0-blue.svg?style=flat&logo=react)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue.svg?style=flat&logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3.4-cyan.svg?style=flat&logo=tailwindcss)](https://tailwindcss.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
-## Repository Structure
+## 📖 Project Overview
 
+The Animal Welfare and Wellness Platform is a fully decoupled full-stack monorepo. It features a stateless Spring Boot Java REST API, a modular React SPA built with TypeScript, an integrated Grafana/Loki/Prometheus observability stack, automated backup/restore scripts, and robust automated end-to-end (E2E) testing.
+
+### Key Objectives
+* **Connect Strays with Adopters:** Create a clean, visually premium, and highly responsive companion search engine.
+* **Streamline Rescue Posting:** Allow rescuers to post rescues with multiple image attachments.
+* **Standardize Adoptions:** Introduce a structured multi-stage adoption flow (Pending request -> Admin/Volunteer review -> Approved/Adopted).
+* **Verify System Reliability:** Provide 100% automated test coverage for critical user authentication and adoption workflows.
+
+---
+
+## 🛠️ System Architecture
+
+The following diagram illustrates the Decoupled Service Architecture:
+
+```mermaid
+graph TD
+    %% Client & Routing
+    subgraph Client ["Client Layer"]
+        UI[React 19 SPA Client]
+        Zustand[Zustand Auth Store]
+        Query[React Query Cache]
+        UI --> Zustand
+        UI --> Query
+    end
+
+    %% Web & Reverse Proxy
+    subgraph Proxy ["Proxy & Security"]
+        Nginx[Nginx Web Server]
+        Limiter[Bucket4j Rate Limiter]
+        HSTS[Security Headers & HSTS]
+        UI -->|HTTPS| Nginx
+        Nginx -->|Filter Chains| Limiter
+        Nginx -->|Headers| HSTS
+    end
+
+    %% Backend Services
+    subgraph API ["Application Layer (Spring Boot JRE 21)"]
+        Controller[REST Controllers]
+        Auth[JWT Token Provider]
+        Service[Transactional Services]
+        Flyway[Flyway Migrator]
+        Nginx -->|API Route Proxy| Controller
+        Controller --> Service
+        Controller --> Auth
+        Service --> Flyway
+    end
+
+    %% Data & CDNs
+    subgraph Data ["Data & CDNs"]
+        DB[(PostgreSQL / H2)]
+        Cloudinary((Cloudinary CDN))
+        Service -->|JPA| DB
+        Service -->|API Upload| Cloudinary
+    end
+
+    %% Monitoring Stack
+    subgraph Obs ["Observability Stack"]
+        Prometheus[Prometheus Scraper]
+        Loki[Loki Log Aggregator]
+        Promtail[Promtail Log Collector]
+        Grafana[Grafana Dashboard]
+        Controller -->|/actuator/prometheus| Prometheus
+        Promtail -->|Tail /var/log/*.log| Loki
+        Prometheus --> Grafana
+        Loki --> Grafana
+    end
 ```
-Animal Welfare and Wellness/
-├── animal-welfare-java/               # Backend Spring Boot REST API
-└── animal-welfare-frontend/           # Frontend React + TypeScript SPA
-```
 
 ---
 
-## Quick Start
+## 🚀 Getting Started (Quick Start)
 
-### 1. Run the Backend (`animal-welfare-java/`)
+The project is preconfigured to run immediately in development mode using a zero-config H2 database.
 
-**Requirements:**
-- Java 25 (or 21+)
-- Maven (bundled in `.mvn/wrapper/`)
+### 1. Launch the Spring Boot Backend
+* **Requirements:** JDK 21+ (or JDK 25)
 
 ```bash
 cd animal-welfare-java
 
-# Windows
+# Windows (Development Run)
 .mvn\wrapper\maven\apache-maven-3.9.6\bin\mvn.cmd spring-boot:run
 ```
+The REST API starts up at **http://localhost:8080** and seeds the database automatically.
 
-App starts at **http://localhost:8080**
-
-### 2. Run the Frontend (`animal-welfare-frontend/`)
-
-**Requirements:**
-- Node.js v20+
-- npm v10+
+### 2. Launch the React Frontend
+* **Requirements:** Node.js v20+
 
 ```bash
 cd animal-welfare-frontend
 
-# Install dependencies
+# Install node packages
 npm install
 
 # Start Vite dev server
 npm run dev
 ```
-
-Vite starts at **http://localhost:5173** (API requests are automatically proxied to backend port `8080`).
-
----
-
-## Demo Credentials
-
-| Username | Password | Role |
-|----------|----------|------|
-| `admin` | `password123` | ADMIN + USER |
-| `aayush` | `password123` | USER |
-| `manthan` | `password123` | USER |
+The Vite development server starts up at **http://localhost:5173**. Client-side API requests are automatically reverse-proxied to port `8080`.
 
 ---
 
-## API Docs
+## 🐳 Docker Compose Deployment (Production Config)
 
-**Swagger UI:** http://localhost:8080/swagger-ui.html
+To spin up the entire production-ready stack in containers:
+1. Ensure Docker Desktop is running.
+2. Run the following command from the monorepo root directory:
 
-**H2 Console (dev):** http://localhost:8080/h2-console
-- JDBC URL: `jdbc:h2:mem:animalwelfaredb`
-- Username: `sa` · Password: *(empty)*
-
----
-
-## API Overview
-
-```
-POST /api/v1/auth/register       Create account
-POST /api/v1/auth/login          Get JWT tokens
-POST /api/v1/auth/refresh        Rotate refresh token
-POST /api/v1/auth/logout         Revoke all tokens
-
-GET  /api/v1/animals             Browse available animals (paginated)
-GET  /api/v1/animals/{id}        Animal details
-GET  /api/v1/animals/stats       Platform statistics
-POST /api/v1/animals             Post a stray animal 🔒
-...
-```
-
-🔒 = Requires `Authorization: Bearer <token>` header (handled automatically by frontend Axios client).
-
----
-
-## Production Setup
-
-### Switch to PostgreSQL
-
-1. Set environment variables:
 ```bash
-export DB_URL=jdbc:postgresql://localhost:5432/animalwelfaredb
-export DB_DRIVER=org.postgresql.Driver
-export DB_USERNAME=postgres
-export DB_PASSWORD=yourpassword
-export SPRING_PROFILES_ACTIVE=prod
-export JWT_SECRET=YourLong256BitSecretKeyHere
-export CLOUDINARY_CLOUD_NAME=your-cloud
-export CLOUDINARY_API_KEY=your-key
-export CLOUDINARY_API_SECRET=your-secret
+docker compose up -d --build
 ```
 
-2. Run:
-```bash
-.mvn\wrapper\maven\apache-maven-3.9.6\bin\mvn.cmd spring-boot:run
-```
-
-Flyway automatically applies all migrations to PostgreSQL on first start.
-
-### Cloudinary Image Uploads
-
-Set `CLOUDINARY_API_KEY` to a non-empty value and images will automatically upload to Cloudinary CDN instead of local storage. No code changes needed.
+**Exposed Services:**
+* **Frontend SPA:** http://localhost (Port 80)
+* **Backend REST API:** http://localhost:8080 (Port 8080)
+* **PostgreSQL Database:** Port 5432
 
 ---
 
-## License
+## 📊 Observability & Monitoring Stack
 
-MIT © Animal Welfare and Wellness
+The platform includes a monitoring system utilizing Grafana, Loki, Promtail, and Prometheus.
+
+To spin up the monitoring stack:
+```bash
+docker compose -f observability/docker-compose.yml up -d
+```
+
+**Exposed Dashboards:**
+* **Grafana Panel:** http://localhost:3000 (Credentials: `admin` / `admin`)
+* **Prometheus Endpoint:** http://localhost:8080/actuator/prometheus
+* **Loki Log Broker:** http://localhost:3100
+
+---
+
+## 🧪 Running the Test Suites
+
+We enforce automated test execution across both the frontend and backend layers:
+
+### 1. Run Backend Unit & Integration Tests
+Execute JUnit testing validations:
+```bash
+cd animal-welfare-java
+./mvnw clean test
+```
+
+### 2. Run Frontend Unit Tests
+Execute Vitest store and component structure validations:
+```bash
+cd animal-welfare-frontend
+npm run test
+```
+
+### 3. Run Playwright End-to-End (E2E) Tests
+Ensure the backend (`mvn spring-boot:run`) and frontend (`npm run dev`) servers are running, then execute Playwright E2E tests:
+```bash
+cd animal-welfare-frontend
+npx playwright test
+```
+
+---
+
+## 🔑 Demo Access Credentials
+
+The database is pre-seeded with the following accounts for platform verification:
+
+| Username | Password | Roles |
+| :--- | :--- | :--- |
+| `admin` | `password123` | `ROLE_USER`, `ROLE_ADMIN` |
+| `aayush` | `password123` | `ROLE_USER` |
+| `manthan` | `password123` | `ROLE_USER` |
+
+---
+
+## 💾 Database Backup & Restore Procedures
+
+Dedicated SQL backup scripts are available under `database/`. For backup operations, disaster recovery plans, and details, please refer to [docs/BACKUP_PROCEDURE.md](docs/BACKUP_PROCEDURE.md).
+
+* **Run Backup (Windows):** `.\database\backup-db.bat`
+* **Run Restore (Windows):** `.\database\restore-db.bat <backup_file.sql>`
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
