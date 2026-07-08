@@ -1,10 +1,11 @@
-import { lazy } from 'react'
+import { lazy, Suspense } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { RootLayout } from '@/components/layout/RootLayout'
 import { HomePage } from '@/pages/HomePage'
 import { AnimalsPage } from '@/pages/AnimalsPage'
 import { ProtectedRoute } from './ProtectedRoute'
 import { RouteErrorBoundary } from '@/components/common/ErrorBoundary'
+import { PageLoader } from '@/components/common/PageLoader'
 
 const AnimalDetailPage = lazy(() =>
   import('@/pages/AnimalDetailPage').then((m) => ({ default: m.AnimalDetailPage }))
@@ -85,11 +86,19 @@ export const router = createBrowserRouter([
   },
   {
     path: 'login',
-    element: <LoginPage />,
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <LoginPage />
+      </Suspense>
+    ),
   },
   {
     path: 'register',
-    element: <RegisterPage />,
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <RegisterPage />
+      </Suspense>
+    ),
   },
   {
     path: '*',

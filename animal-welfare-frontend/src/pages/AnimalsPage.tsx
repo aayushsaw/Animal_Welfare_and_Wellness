@@ -93,8 +93,10 @@ export function AnimalsPage() {
         ) : data?.content.length === 0 ? (
           <div className="text-center py-24">
             <Search className="w-12 h-12 text-sage-300 mx-auto mb-4" />
-            <h3 className="font-serif text-xl text-brown-700">No animals found</h3>
-            <p className="text-brown-400 text-sm mt-1">Try a different category or check back later.</p>
+            <h3 className="font-serif text-xl text-brown-700">No companions match your search right now</h3>
+            <p className="text-brown-500 text-sm mt-1.5 max-w-md mx-auto leading-relaxed">
+              No animals matched your filters. Try changing your filters or clearing your search.
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

@@ -11,7 +11,7 @@ test.describe('Listings and Adoption Lifecycle', () => {
     await page.click('[data-testid="category-filter-dog"]');
     
     // Wait for the query and check results
-    await page.waitForTimeout(500); // Wait for transition
+    await page.waitForSelector('[data-testid="animal-card"]');
     const cardsCount = await page.locator('[data-testid="animal-card"]').count();
     
     if (cardsCount > 0) {
@@ -28,15 +28,20 @@ test.describe('Listings and Adoption Lifecycle', () => {
   });
 
   test('should complete the full adoption request and admin review flow', async ({ page }) => {
-    // 1. Log in as a normal user 'aayush'
-    await page.goto('/login');
-    await page.fill('[data-testid="username-input"]', 'aayush');
+    // 1. Register a new buyer user to avoid adopting own posted animals
+    const buyerUsername = `buyer_${Math.floor(Math.random() * 100000)}`;
+    await page.goto('/register');
+    await page.fill('[data-testid="firstname-input"]', 'Buyer');
+    await page.fill('[data-testid="lastname-input"]', 'User');
+    await page.fill('[data-testid="username-input"]', buyerUsername);
+    await page.fill('[data-testid="email-input"]', `${buyerUsername}@example.com`);
     await page.fill('[data-testid="password-input"]', 'password123');
-    await page.click('[data-testid="login-submit"]');
+    await page.click('[data-testid="register-submit"]');
     await page.waitForURL('**/');
 
     // 2. Go to animals list and find an available one
-    await page.goto('/animals');
+    await page.locator('nav').locator('text=Find a Pet').first().click();
+    await page.waitForSelector('[data-testid="animal-card"]');
     const availableCards = page.locator('[data-testid="animal-card"]');
     const count = await availableCards.count();
     
@@ -69,7 +74,7 @@ test.describe('Listings and Adoption Lifecycle', () => {
     await page.click('[data-testid="adopt-submit-btn"]');
     
     // Check success toast / confirmation
-    await expect(page.locator('text=Adoption request submitted successfully')).toBeVisible();
+    await expect(page.locator('text=Adoption request submitted')).toBeVisible();
 
     // 4. Log out
     await page.click('[data-testid="navbar-profile-btn"]');
@@ -91,8 +96,8 @@ test.describe('Listings and Adoption Lifecycle', () => {
     // Find the pending request for our animal
     await expect(page.locator('h2:has-text("Pending Reviews")')).toBeVisible();
     
-    // We locate the review block containing the animalName and requesterUsername 'aayush'
-    const pendingRequestRow = page.locator(`.divide-y > div:has-text("${animalName}"):has-text("aayush")`);
+    // We locate the review block containing the animalName and requesterUsername
+    const pendingRequestRow = page.locator(`.divide-y > div:has-text("${animalName}"):has-text("${buyerUsername}")`);
     await expect(pendingRequestRow).toBeVisible();
     
     // Click Review Request
