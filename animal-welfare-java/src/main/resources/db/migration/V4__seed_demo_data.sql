@@ -6,16 +6,16 @@
 -- Admin user
 INSERT INTO users (first_name, last_name, username, email, password, email_verified)
 VALUES ('Admin', 'User', 'admin', 'admin@animalwelfare.com',
-        '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', true);
+        '$2a$10$Nhrm.rxkEDbUjf3D20r/qO/Sa5e.LO8okCt0XCMKOS2lacbPzysNm', true);
 
 -- Regular users
 INSERT INTO users (first_name, last_name, username, email, password, email_verified)
 VALUES ('Aayush', 'Shah', 'aayush', 'aayush@example.com',
-        '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', true);
+        '$2a$10$Nhrm.rxkEDbUjf3D20r/qO/Sa5e.LO8okCt0XCMKOS2lacbPzysNm', true);
 
 INSERT INTO users (first_name, last_name, username, email, password, email_verified)
 VALUES ('Manthan', 'Patel', 'manthan', 'manthan@example.com',
-        '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', true);
+        '$2a$10$Nhrm.rxkEDbUjf3D20r/qO/Sa5e.LO8okCt0XCMKOS2lacbPzysNm', true);
 
 -- Assign roles
 INSERT INTO user_roles (user_id, role_id)
