@@ -1,13 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
   MapPin, Calendar, Heart, ArrowLeft, ChevronLeft, ChevronRight, 
-  Loader2, Trash2, Edit3, Archive, RefreshCw, X, ZoomIn, ZoomOut, Maximize 
+  Loader2, Trash2, Edit3, Archive, RefreshCw, X, ZoomIn, ZoomOut, Maximize,
+  User, Clock
 } from 'lucide-react'
 import { animalsApi } from '@/api/animals.api'
 import { useAuthStore } from '@/store/auth.store'
-import { resolveImageUrl, CATEGORY_LABELS, HEALTH_STATUS_CONFIG, formatDate } from '@/lib/utils'
+import { resolveImageUrl, getDetailImageUrl, CATEGORY_LABELS, HEALTH_STATUS_CONFIG, formatDate } from '@/lib/utils'
 import { toast } from 'sonner'
 import type { AnimalImage, AnimalRequest, HealthStatus, AnimalCategory, AnimalGender } from '@/types/animal'
 
@@ -35,10 +36,16 @@ export function AnimalDetailPage() {
   const { user, hasRole, isAuthenticated } = useAuthStore()
 
   // Gallery state
-  const [activeImg, setActiveImg] = useState(0)
-  const [imgZoom, setImgZoom] = useState(false)
-  const [zoomScale, setZoomScale] = useState(1.5)
+  const [activeImg, setActiveImg]     = useState(0)
+  const [imgZoom, setImgZoom]         = useState(false)
+  const [zoomScale, setZoomScale]     = useState(1.5)
   const [isFullscreen, setIsFullscreen] = useState(false)
+
+  // Keyboard navigation for fullscreen modal
+  const closeFullscreen = useCallback(() => {
+    setIsFullscreen(false)
+    setImgZoom(false)
+  }, [])
 
   // Adoption request state
   const [adoptMessage, setAdoptMessage] = useState('')
@@ -55,6 +62,19 @@ export function AnimalDetailPage() {
     queryFn: () => animalsApi.getById(animalId),
     enabled: !isNaN(animalId),
   })
+
+  // Keyboard navigation for fullscreen modal (declared here so animal is in scope)
+  useEffect(() => {
+    if (!isFullscreen) return
+    const imageCount = animal?.images.length ?? 1
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape')      closeFullscreen()
+      if (e.key === 'ArrowRight')  setActiveImg((i) => Math.min(imageCount - 1, i + 1))
+      if (e.key === 'ArrowLeft')   setActiveImg((i) => Math.max(0, i - 1))
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [isFullscreen, closeFullscreen, animal?.images.length])
 
   // Mutations
   const adoptMutation = useMutation({
@@ -426,44 +446,61 @@ export function AnimalDetailPage() {
 
                 {/* ── Administrative & Owner Management Panel ── */}
                 {canManage && (
-                  <div className="pt-4 border-t border-sage-100 space-y-3">
-                    <h4 className="text-xs uppercase tracking-wider font-bold text-brown-500">Rescue Moderation Controls</h4>
-                    
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
+                  <div className="pt-4 border-t border-sage-100 space-y-4">
+                    {/* Header with poster attribution */}
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs uppercase tracking-wider font-bold text-brown-500">Moderation Controls</h4>
+                      <div className="flex items-center gap-3 text-[10px] text-brown-400 font-medium">
+                        <span className="flex items-center gap-1">
+                          <User className="w-3 h-3" />
+                          {animal.postedBy?.username ?? 'unknown'}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {formatDate(animal.createdAt)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2">
                       <button
                         onClick={startEditing}
-                        className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-white hover:bg-sage-50 text-brown-700 border border-sage-200 rounded-xl text-xs font-semibold transition-all shadow-xs"
+                        className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-white hover:bg-sage-50 text-brown-700 border border-sage-200 rounded-xl text-xs font-semibold transition-all"
                       >
-                        <Edit3 className="w-4 h-4 text-forest-600" />
-                        Edit Listing
+                        <Edit3 className="w-3.5 h-3.5 text-forest-600" />
+                        Edit
                       </button>
 
                       {animal.status !== 'ARCHIVED' ? (
                         <button
                           onClick={() => archiveMutation.mutate()}
                           disabled={archiveMutation.isPending}
-                          className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-white hover:bg-orange-50 text-orange-700 border border-orange-200 rounded-xl text-xs font-semibold transition-all shadow-xs"
+                          className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-white hover:bg-orange-50 text-orange-700 border border-orange-200 rounded-xl text-xs font-semibold transition-all disabled:opacity-50"
                         >
-                          <Archive className="w-4 h-4" />
+                          {archiveMutation.isPending
+                            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            : <Archive className="w-3.5 h-3.5" />}
                           Archive
                         </button>
                       ) : (
                         <button
                           onClick={() => restoreMutation.mutate()}
                           disabled={restoreMutation.isPending}
-                          className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-white hover:bg-forest-50 text-forest-700 border border-forest-200 rounded-xl text-xs font-semibold transition-all shadow-xs"
+                          className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-white hover:bg-forest-50 text-forest-700 border border-forest-200 rounded-xl text-xs font-semibold transition-all disabled:opacity-50"
                         >
-                          <RefreshCw className="w-4 h-4 animate-spin-reverse" />
+                          {restoreMutation.isPending
+                            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            : <RefreshCw className="w-3.5 h-3.5" />}
                           Restore
                         </button>
                       )}
 
                       <button
                         onClick={() => setShowDeleteConfirm(true)}
-                        className="col-span-2 md:col-span-1 flex items-center justify-center gap-1.5 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-xs font-semibold transition-all shadow-xs"
+                        className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-xs font-semibold transition-all"
                       >
-                        <Trash2 className="w-4 h-4" />
-                        Delete Post
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Delete
                       </button>
                     </div>
                   </div>
@@ -618,27 +655,27 @@ export function AnimalDetailPage() {
 
       {/* ── Custom Fullscreen Image Viewer Modal ── */}
       {isFullscreen && (
-        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col justify-between p-4 select-none animate-fadeIn">
+        <div className="fixed inset-0 z-50 bg-black/96 flex flex-col justify-between p-4 select-none animate-fadeIn">
           {/* Top Bar */}
-          <div className="flex items-center justify-between text-white p-2">
-            <span className="text-xs font-semibold tracking-wider uppercase opacity-80">
-              {animal.name} — Photo {activeImg + 1} of {images.length}
-            </span>
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between text-white px-2 py-3">
+            <div>
+              <span className="text-sm font-semibold text-white">{animal.name}</span>
+              <span className="text-xs text-white/50 ml-3">{activeImg + 1} / {images.length}</span>
+              <span className="ml-3 text-[10px] text-white/40 uppercase tracking-widest">Press Esc to close · ← → to navigate</span>
+            </div>
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => setImgZoom((z) => !z)}
-                className="p-2 rounded-full hover:bg-white/10 text-white transition-colors"
-                title={imgZoom ? "Zoom Out" : "Zoom In"}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-colors"
+                title={imgZoom ? 'Zoom Out' : 'Zoom In'}
               >
-                {imgZoom ? <ZoomOut className="w-5 h-5" /> : <ZoomIn className="w-5 h-5" />}
+                {imgZoom ? <ZoomOut className="w-4 h-4" /> : <ZoomIn className="w-4 h-4" />}
+                {imgZoom ? 'Zoom Out' : 'Zoom In'}
               </button>
               <button
-                onClick={() => {
-                  setIsFullscreen(false)
-                  setImgZoom(false)
-                }}
-                className="p-2 rounded-full hover:bg-white/10 text-white transition-colors"
-                title="Close"
+                onClick={closeFullscreen}
+                className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+                title="Close (Esc)"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -648,7 +685,7 @@ export function AnimalDetailPage() {
           {/* Center Image Container */}
           <div className="flex-1 relative flex items-center justify-center overflow-hidden">
             <img
-              src={resolvedUrl}
+              src={getDetailImageUrl(activeImage?.imageUrl)}
               alt={animal.name}
               style={{
                 transform: imgZoom ? `scale(${zoomScale})` : 'scale(1)',
