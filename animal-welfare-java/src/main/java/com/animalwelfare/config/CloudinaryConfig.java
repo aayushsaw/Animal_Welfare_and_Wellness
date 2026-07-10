@@ -28,6 +28,10 @@ public class CloudinaryConfig {
 
     @Bean
     public Cloudinary cloudinary() {
+        String urlEnv = System.getenv("CLOUDINARY_URL");
+        if (urlEnv != null && !urlEnv.isBlank()) {
+            return new Cloudinary(urlEnv);
+        }
         return new Cloudinary(Map.of(
                 "cloud_name", cloudName,
                 "api_key",    apiKey,

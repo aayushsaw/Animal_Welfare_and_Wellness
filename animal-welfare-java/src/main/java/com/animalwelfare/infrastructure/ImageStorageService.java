@@ -67,8 +67,11 @@ public class ImageStorageService {
     }
 
     private boolean isCloudinaryConfigured() {
-        return cloudinaryApiKey != null && !cloudinaryApiKey.isBlank()
+        String urlEnv = System.getenv("CLOUDINARY_URL");
+        boolean hasUrlEnv = urlEnv != null && !urlEnv.isBlank();
+        boolean hasKeyConfig = cloudinaryApiKey != null && !cloudinaryApiKey.isBlank()
                 && !cloudinaryApiKey.equals("demo");
+        return hasUrlEnv || hasKeyConfig;
     }
 
     private UploadResult uploadToCloudinary(MultipartFile file, String folder) throws IOException {
