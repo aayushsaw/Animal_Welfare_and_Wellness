@@ -26,6 +26,24 @@ export function resolveImageUrl(url: string | undefined | null): string {
   return `${baseUrl}/${url}`
 }
 
+/** Get optimized Cloudinary URL for thumbnail */
+export function getThumbnailUrl(url: string | undefined | null): string {
+  const resolved = resolveImageUrl(url)
+  if (resolved.includes('res.cloudinary.com') && resolved.includes('/upload/')) {
+    return resolved.replace('/upload/', '/upload/q_auto,f_auto,c_fill,ar_4:3,w_400/')
+  }
+  return resolved
+}
+
+/** Get optimized Cloudinary URL for high-resolution preview */
+export function getDetailImageUrl(url: string | undefined | null): string {
+  const resolved = resolveImageUrl(url)
+  if (resolved.includes('res.cloudinary.com') && resolved.includes('/upload/')) {
+    return resolved.replace('/upload/', '/upload/q_auto,f_auto,c_limit,w_1200/')
+  }
+  return resolved
+}
+
 import type { AnimalImage } from '@/types/animal'
 
 /** Get primary image from an array, fallback to first */
