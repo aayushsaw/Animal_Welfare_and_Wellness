@@ -99,14 +99,14 @@ public class AnimalService {
         animal.setPostedBy(user);
         
         // Admin or Volunteer listings are automatically approved (AVAILABLE).
-        // Regular user listings require approval (PENDING).
+        // Regular user listings require approval (PENDING_APPROVAL).
         boolean isAutoApprove = user.getRoles().stream()
                 .anyMatch(r -> r.getName().equals("ROLE_ADMIN") || r.getName().equals("ROLE_VOLUNTEER"));
         
         if (isAutoApprove) {
             animal.setStatus(AnimalStatus.AVAILABLE);
         } else {
-            animal.setStatus(AnimalStatus.PENDING);
+            animal.setStatus(AnimalStatus.PENDING_APPROVAL);
         }
         
         return AnimalResponse.from(animalRepository.save(animal));
@@ -167,8 +167,8 @@ public class AnimalService {
             throw new AccessDeniedException("Only Admin or Volunteer can approve listings");
         }
 
-        if (animal.getStatus() != AnimalStatus.PENDING) {
-            throw new BusinessException("Only PENDING listings can be approved");
+        if (animal.getStatus() != AnimalStatus.PENDING_APPROVAL) {
+            throw new BusinessException("Only PENDING_APPROVAL listings can be approved");
         }
 
         animal.setStatus(AnimalStatus.AVAILABLE);
@@ -189,7 +189,7 @@ public class AnimalService {
         }
 
         Pageable pageable = PageRequest.of(0, 100, Sort.by("createdAt").descending());
-        return animalRepository.findByStatus(AnimalStatus.PENDING, pageable).getContent().stream()
+        return animalRepository.findByStatus(AnimalStatus.PENDING_APPROVAL, pageable).getContent().stream()
                 .map(AnimalResponse::from)
                 .collect(Collectors.toList());
     }
