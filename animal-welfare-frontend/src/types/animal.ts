@@ -2,7 +2,7 @@ import { components } from './generated/schema'
 
 export type AnimalCategory = 'DOG' | 'CAT' | 'BIRD' | 'RABBIT' | 'OTHER'
 export type AnimalGender = 'MALE' | 'FEMALE' | 'UNKNOWN'
-export type AnimalStatus = 'AVAILABLE' | 'PENDING_APPROVAL' | 'PENDING' | 'ADOPTED'
+export type AnimalStatus = 'AVAILABLE' | 'PENDING_APPROVAL' | 'PENDING' | 'ADOPTED' | 'ARCHIVED'
 export type HealthStatus = 'HEALTHY' | 'VACCINATED' | 'NEEDS_CARE' | 'INJURED' | 'RECOVERING'
 
 export interface AnimalImage {

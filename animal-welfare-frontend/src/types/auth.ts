@@ -12,4 +12,16 @@ export interface User {
   lastName?: string
 }
 
-export type UserProfile = components['schemas']['UserProfileResponse']
+export interface UserProfile {
+  id: number
+  firstName: string
+  lastName: string
+  username: string
+  email: string
+  roles: string[]
+  emailVerified: boolean
+  accountLocked: boolean
+  createdAt: string
+  animalsPosted: number
+  adoptionsCompleted: number
+}
