@@ -8,6 +8,7 @@ import { authApi } from '@/api/auth.api'
 import { useAuthStore } from '@/store/auth.store'
 import { toast } from 'sonner'
 import { resolveImageUrl } from '@/lib/utils'
+import { usePageTitle } from '@/lib/usePageTitle'
 
 const loginSchema = z.object({
   username: z.string().min(1, 'Username is required'),
@@ -17,6 +18,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>
 
 export function LoginPage() {
+  usePageTitle('Sign In')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const { setAuth } = useAuthStore()

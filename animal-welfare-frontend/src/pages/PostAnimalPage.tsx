@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { Loader2, Upload, Trash2 } from 'lucide-react'
 import { animalsApi } from '@/api/animals.api'
 import { toast } from 'sonner'
+import { usePageTitle } from '@/lib/usePageTitle'
 
 const postSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
@@ -22,10 +23,20 @@ const postSchema = z.object({
 type PostFormData = z.infer<typeof postSchema>
 
 export function PostAnimalPage() {
+  usePageTitle('Post a Stray Animal')
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
-  const [images, setImages] = useState<File[]>([])
-  const [previews, setPreviews] = useState<string[]>([])
+  const [images,    setImages]    = useState<File[]>([])
+  const [previews,  setPreviews]  = useState<string[]>([])
+
+  // Revoke all object URLs when component unmounts to prevent memory leaks
+  const previewsRef = useRef(previews)
+  previewsRef.current = previews
+  useEffect(() => {
+    return () => {
+      previewsRef.current.forEach((url) => URL.revokeObjectURL(url))
+    }
+  }, [])
 
   const {
     register,

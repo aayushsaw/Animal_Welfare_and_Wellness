@@ -2,8 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { newsApi } from '@/api/news.api'
 import { resolveImageUrl, formatDate, NEWS_CATEGORY_LABELS } from '@/lib/utils'
+import { usePageTitle } from '@/lib/usePageTitle'
 
 export function NewsPage() {
+  usePageTitle('Welfare News')
   const { data, isLoading } = useQuery({
     queryKey: ['news'],
     queryFn: () => newsApi.getAll({ size: 20 }),

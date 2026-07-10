@@ -4,6 +4,7 @@ import { SlidersHorizontal, Search, PawPrint } from 'lucide-react'
 import { animalsApi } from '@/api/animals.api'
 import { AnimalCard } from '@/components/animals/AnimalCard'
 import type { AnimalCategory } from '@/types/animal'
+import { usePageTitle } from '@/lib/usePageTitle'
 
 const CATEGORIES: { value: AnimalCategory | 'ALL'; label: string; emoji: string }[] = [
   { value: 'ALL',    label: 'All Animals', emoji: '🐾' },
@@ -17,6 +18,7 @@ const CATEGORIES: { value: AnimalCategory | 'ALL'; label: string; emoji: string 
 const PAGE_SIZE = 12
 
 export function AnimalsPage() {
+  usePageTitle('Find a Pet')
   const [category, setCategory] = useState<AnimalCategory | 'ALL'>('ALL')
   const [page, setPage]         = useState(0)
 

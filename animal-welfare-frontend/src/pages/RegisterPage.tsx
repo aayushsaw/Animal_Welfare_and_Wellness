@@ -8,6 +8,7 @@ import { authApi } from '@/api/auth.api'
 import { useAuthStore } from '@/store/auth.store'
 import { toast } from 'sonner'
 import { resolveImageUrl } from '@/lib/utils'
+import { usePageTitle } from '@/lib/usePageTitle'
 
 const registerSchema = z.object({
   firstName: z.string().min(1, 'First name is required').max(50),
@@ -27,6 +28,7 @@ const registerSchema = z.object({
 type RegisterFormData = z.infer<typeof registerSchema>
 
 export function RegisterPage() {
+  usePageTitle('Join Our Community')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const { setAuth } = useAuthStore()

@@ -1,7 +1,9 @@
 import { Heart, ShieldCheck, HelpCircle } from 'lucide-react'
 import { resolveImageUrl } from '@/lib/utils'
+import { usePageTitle } from '@/lib/usePageTitle'
 
 export function AboutPage() {
+  usePageTitle('About Us')
   return (
     <div className="pt-20 min-h-screen bg-cream-100 pb-16">
       {/* Header */}

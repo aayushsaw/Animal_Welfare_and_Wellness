@@ -11,8 +11,10 @@ import { usersApi } from '@/api/users.api'
 import { useAuthStore } from '@/store/auth.store'
 import { resolveImageUrl, ADOPTION_STATUS_CONFIG, formatDate } from '@/lib/utils'
 import { toast } from 'sonner'
+import { usePageTitle } from '@/lib/usePageTitle'
 
 export function DashboardPage() {
+  usePageTitle('My Dashboard')
   const { user, hasRole } = useAuthStore()
   const queryClient = useQueryClient()
   

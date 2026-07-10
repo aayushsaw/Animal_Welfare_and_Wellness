@@ -9,6 +9,7 @@ import {
 import { animalsApi } from '@/api/animals.api'
 import { useAuthStore } from '@/store/auth.store'
 import { resolveImageUrl, getDetailImageUrl, CATEGORY_LABELS, HEALTH_STATUS_CONFIG, formatDate } from '@/lib/utils'
+import { usePageTitle } from '@/lib/usePageTitle'
 import { toast } from 'sonner'
 import type { AnimalImage, AnimalRequest, HealthStatus, AnimalCategory, AnimalGender } from '@/types/animal'
 
@@ -31,7 +32,7 @@ const STATUS_LABELS: Record<string, string> = {
 export function AnimalDetailPage() {
   const { id } = useParams<{ id: string }>()
   const animalId = Number(id)
-  const navigate = useNavigate()
+  const navigate  = useNavigate()
   const queryClient = useQueryClient()
   const { user, hasRole, isAuthenticated } = useAuthStore()
 
@@ -62,6 +63,9 @@ export function AnimalDetailPage() {
     queryFn: () => animalsApi.getById(animalId),
     enabled: !isNaN(animalId),
   })
+
+  // Dynamic page title — updates when animal data loads
+  usePageTitle(animal ? animal.name : 'Animal Profile')
 
   // Keyboard navigation for fullscreen modal (declared here so animal is in scope)
   useEffect(() => {

@@ -147,15 +147,22 @@ export function HomePage() {
               ))}
             </div>
           ) : (
-            /* Loading skeletons */
+            /* Loading skeletons — aspect ratio matches real card to prevent layout shift */
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="bg-white rounded-2xl overflow-hidden border border-sage-100">
-                  <div className="skeleton h-52 w-full" />
+                <div key={i} className="bg-white rounded-2xl overflow-hidden border border-sage-100 shadow-sm">
+                  <div className="animate-pulse bg-cream-200 w-full" style={{ aspectRatio: '4/3' }} />
                   <div className="p-4 space-y-3">
-                    <div className="skeleton h-5 w-2/3" />
-                    <div className="skeleton h-4 w-1/2" />
-                    <div className="skeleton h-3 w-full" />
+                    <div className="flex justify-between gap-2">
+                      <div className="skeleton h-4 w-2/3" />
+                      <div className="skeleton h-4 w-10" />
+                    </div>
+                    <div className="skeleton h-3 w-1/2" />
+                    <div className="skeleton h-3 w-1/3" />
+                    <div className="border-t border-sage-100 pt-3 flex justify-between">
+                      <div className="skeleton h-3 w-1/3" />
+                      <div className="skeleton h-3 w-1/5" />
+                    </div>
                   </div>
                 </div>
               ))}
