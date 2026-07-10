@@ -15,8 +15,33 @@ export const apiClient = axios.create({
 
 // ── Request interceptor: attach access token ──────────────────────────────────
 apiClient.interceptors.request.use(
-  (config) => {
-    const token = useAuthStore.getState().accessToken
+  async (config) => {
+    let token = useAuthStore.getState().accessToken
+    const refreshToken = useAuthStore.getState().refreshToken
+
+    // Proactively refresh the token if we have a refreshToken but no accessToken,
+    // avoiding unauthenticated calls to protected routes (which would fail with 401/403)
+    if (!token && refreshToken && !config.url?.endsWith('/auth/refresh') && !config.url?.endsWith('/auth/login')) {
+      try {
+        const response = await axios.post(`${BASE_URL}/auth/refresh`, {
+          refreshToken,
+        })
+        const newAccessToken: string = response.data.data.accessToken
+        const newRefreshToken: string = response.data.data.refreshToken
+
+        useAuthStore.getState().setAccessToken(newAccessToken)
+        useAuthStore.setState({
+          refreshToken: newRefreshToken,
+          accessToken: newAccessToken,
+        })
+        token = newAccessToken
+      } catch (err) {
+        useAuthStore.getState().logout()
+        window.location.href = '/login'
+        return Promise.reject(err)
+      }
+    }
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
