@@ -30,7 +30,7 @@ class SecurityIntegrationTest {
     @Test
     void protectedEndpoints_shouldDenyUnauthenticatedAccess() throws Exception {
         mockMvc.perform(get("/api/v1/animals/my-listings"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
