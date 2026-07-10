@@ -93,10 +93,22 @@ public class AnimalService {
     /** Post a new stray animal — preserves original core feature */
     @Transactional
     public AnimalResponse create(AnimalRequest request, String username) {
-        User user   = getUser(username);
+        User user = userRepository.findByUsernameWithRoles(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
         Animal animal = mapToEntity(request, new Animal());
         animal.setPostedBy(user);
-        animal.setStatus(AnimalStatus.AVAILABLE);
+        
+        // Admin or Volunteer listings are automatically approved (AVAILABLE).
+        // Regular user listings require approval (PENDING).
+        boolean isAutoApprove = user.getRoles().stream()
+                .anyMatch(r -> r.getName().equals("ROLE_ADMIN") || r.getName().equals("ROLE_VOLUNTEER"));
+        
+        if (isAutoApprove) {
+            animal.setStatus(AnimalStatus.AVAILABLE);
+        } else {
+            animal.setStatus(AnimalStatus.PENDING);
+        }
+        
         return AnimalResponse.from(animalRepository.save(animal));
     }
 
@@ -137,6 +149,49 @@ public class AnimalService {
         animal.addImage(image);
 
         return AnimalResponse.from(animalRepository.save(animal));
+    }
+
+    /** Approve a pending animal listing — Admin/Volunteer only */
+    @Transactional
+    public AnimalResponse approveListing(Long id, String username) {
+        Animal animal = animalRepository.findByIdWithImages(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Animal", id));
+
+        User reviewer = userRepository.findByUsernameWithRoles(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+
+        boolean isAdminOrVolunteer = reviewer.getRoles().stream()
+                .anyMatch(r -> r.getName().equals("ROLE_ADMIN") || r.getName().equals("ROLE_VOLUNTEER"));
+
+        if (!isAdminOrVolunteer) {
+            throw new AccessDeniedException("Only Admin or Volunteer can approve listings");
+        }
+
+        if (animal.getStatus() != AnimalStatus.PENDING) {
+            throw new BusinessException("Only PENDING listings can be approved");
+        }
+
+        animal.setStatus(AnimalStatus.AVAILABLE);
+        return AnimalResponse.from(animalRepository.save(animal));
+    }
+
+    /** Get all pending animal listings — Admin/Volunteer only */
+    @Transactional(readOnly = true)
+    public List<AnimalResponse> getPendingListings(String username) {
+        User user = userRepository.findByUsernameWithRoles(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+
+        boolean isAdminOrVolunteer = user.getRoles().stream()
+                .anyMatch(r -> r.getName().equals("ROLE_ADMIN") || r.getName().equals("ROLE_VOLUNTEER"));
+
+        if (!isAdminOrVolunteer) {
+            throw new AccessDeniedException("Only Admin or Volunteer can view pending listings");
+        }
+
+        Pageable pageable = PageRequest.of(0, 100, Sort.by("createdAt").descending());
+        return animalRepository.findByStatus(AnimalStatus.PENDING, pageable).getContent().stream()
+                .map(AnimalResponse::from)
+                .collect(Collectors.toList());
     }
 
     /** Platform statistics */

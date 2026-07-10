@@ -15,6 +15,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -133,6 +134,27 @@ public class AnimalApiController {
                 id, request.getMessage(), userDetails.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Adoption request submitted successfully", response));
+    }
+
+    @Operation(summary = "Approve a pending animal listing — Admin/Volunteer only",
+               security = @SecurityRequirement(name = "bearerAuth"))
+    @PreAuthorize("hasAnyRole('ADMIN', 'VOLUNTEER')")
+    @PutMapping("/{id}/approve")
+    public ResponseEntity<ApiResponse<AnimalResponse>> approveListing(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        AnimalResponse approved = animalService.approveListing(id, userDetails.getUsername());
+        return ResponseEntity.ok(ApiResponse.success("Animal listing approved successfully", approved));
+    }
+
+    @Operation(summary = "Get all pending animal listings — Admin/Volunteer only",
+               security = @SecurityRequirement(name = "bearerAuth"))
+    @PreAuthorize("hasAnyRole('ADMIN', 'VOLUNTEER')")
+    @GetMapping("/pending")
+    public ResponseEntity<ApiResponse<List<AnimalResponse>>> getPendingListings(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        List<AnimalResponse> pending = animalService.getPendingListings(userDetails.getUsername());
+        return ResponseEntity.ok(ApiResponse.success(pending));
     }
 
     // ===================== USER-SCOPED ENDPOINTS =====================
