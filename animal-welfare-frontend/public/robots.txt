@@ -1,0 +1,14 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Allow: /animals
+Allow: /news
+Allow: /about
+
+# Protected routes
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /login
+Disallow: /register
+
+Sitemap: https://animal-welfare-frontend.vercel.app/sitemap.xml
