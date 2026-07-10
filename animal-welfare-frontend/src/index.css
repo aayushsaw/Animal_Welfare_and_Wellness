@@ -2,92 +2,150 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── shadcn/ui CSS variables — mapped to our brand palette ─────────────────── */
+/* ── shadcn/ui CSS custom properties — mapped to the AWW brand palette ──── */
 @layer base {
   :root {
-    --background: 30 100% 97%;
-    --foreground: 25 40% 20%;
+    --background:   30 100% 97%;
+    --foreground:   25  40% 20%;
 
-    --card: 0 0% 100%;
+    --card:           0   0% 100%;
     --card-foreground: 25 40% 20%;
 
-    --popover: 0 0% 100%;
+    --popover:           0   0% 100%;
     --popover-foreground: 25 40% 20%;
 
-    --primary: 152 40% 30%;
-    --primary-foreground: 0 0% 98%;
+    --primary:            152 40% 30%;
+    --primary-foreground:   0  0% 98%;
 
-    --secondary: 145 40% 61%;
+    --secondary:            145 40% 61%;
     --secondary-foreground: 152 40% 15%;
 
-    --muted: 30 50% 94%;
+    --muted:           30 50% 94%;
     --muted-foreground: 25 25% 50%;
 
-    --accent: 28 85% 66%;
+    --accent:           28 85% 66%;
     --accent-foreground: 25 40% 15%;
 
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive:           0 72% 51%;
+    --destructive-foreground: 0  0% 98%;
 
     --border: 145 20% 82%;
-    --input: 145 20% 88%;
-    --ring: 152 40% 30%;
+    --input:  145 20% 88%;
+    --ring:   152 40% 30%;
 
     --radius: 0.625rem;
   }
 }
 
-/* ── Base styles ────────────────────────────────────────────────────────────── */
+/* ── Base reset & typography ─────────────────────────────────────────────── */
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
   }
 
   html {
     scroll-behavior: smooth;
+    /* Prevent iOS text size inflation */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
     @apply bg-cream-100 text-brown-700;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Improve text rendering on Windows */
+    text-rendering: optimizeLegibility;
   }
 
-  h1, h2, h3 {
+  h1, h2, h3, h4 {
     font-family: 'Lora', Georgia, serif;
     font-weight: 600;
   }
 
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: #FFF8F0; }
-  ::-webkit-scrollbar-thumb { background: #74C69D; border-radius: 3px; }
+  /* Focus ring — consistent across all interactive elements */
+  :focus-visible {
+    outline: 2px solid #2D6A4F;
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  /* Remove default focus ring when using mouse */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* Custom scrollbar — Webkit */
+  ::-webkit-scrollbar         { width: 6px; }
+  ::-webkit-scrollbar-track   { background: #FFF8F0; }
+  ::-webkit-scrollbar-thumb   { background: #74C69D; border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: #2D6A4F; }
+
+  /* Reduced motion — honour the OS accessibility setting */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration:        0.01ms !important;
+      animation-iteration-count: 1      !important;
+      transition-duration:       0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
-/* ── Utility classes ────────────────────────────────────────────────────────── */
+/* ── Utility classes ─────────────────────────────────────────────────────── */
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
 
-  /* Fade-in animation — used in modals, drawers, detail pages */
-  .animate-fadeIn {
-    animation: fade-in 0.35s ease-out both;
-  }
+  /* ── Animation keyframes ── */
 
   @keyframes fade-in {
     from { opacity: 0; transform: translateY(6px); }
     to   { opacity: 1; transform: translateY(0);   }
   }
 
+  @keyframes fade-in-scale {
+    from { opacity: 0; transform: scale(0.97); }
+    to   { opacity: 1; transform: scale(1);    }
+  }
+
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0);    }
+  }
+
+  @keyframes shimmer {
+    from { background-position: -200% 0; }
+    to   { background-position:  200% 0; }
+  }
+
+  /* ── Animation utility classes ── */
+
+  .animate-fadeIn {
+    animation: fade-in 0.3s ease-out both;
+  }
+
+  .animate-fadeInScale {
+    animation: fade-in-scale 0.25s ease-out both;
+  }
+
+  .animate-slideUp {
+    animation: slide-up 0.35s ease-out both;
+  }
+
+  /* ── Layout utilities ── */
+
   .hero-overlay {
     background: linear-gradient(
-      135deg,
-      rgba(27, 67, 50, 0.80) 0%,
-      rgba(45, 106, 79, 0.60) 50%,
-      rgba(116, 198, 157, 0.20) 100%
+      150deg,
+      rgba(27, 67, 50, 0.88) 0%,
+      rgba(45, 106, 79, 0.65) 45%,
+      rgba(116, 198, 157, 0.15) 100%
     );
   }
 
@@ -95,8 +153,17 @@
     @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
   }
 
+  /* Skeleton placeholder — uses the shimmer effect for a premium feel */
   .skeleton {
-    @apply animate-pulse bg-cream-200 rounded-md;
+    background: linear-gradient(
+      90deg,
+      #f9e0c4 25%,
+      #fceedd 50%,
+      #f9e0c4 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    border-radius: 6px;
   }
 
   .section-padding {
@@ -105,5 +172,13 @@
 
   .container-max {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Glass morphism card helper */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
   }
 }
