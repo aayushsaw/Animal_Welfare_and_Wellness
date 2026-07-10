@@ -30,11 +30,18 @@ export function AnimalCard({ animal }: AnimalCardProps) {
       className="group block bg-white rounded-2xl overflow-hidden shadow-sm border border-sage-100 card-hover"
     >
       {/* Image */}
-      <div className="relative h-52 overflow-hidden bg-cream-200">
+      <div className="relative h-52 overflow-hidden bg-cream-50 flex items-center justify-center">
+        {/* Background blurred image for ambient aesthetic */}
+        <img
+          src={imageUrl}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover blur-md opacity-25 scale-110 pointer-events-none"
+        />
+        {/* Foreground clean image */}
         <img
           src={imageUrl}
           alt={animal.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className="relative max-w-full max-h-full object-contain z-10 group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
         />
 

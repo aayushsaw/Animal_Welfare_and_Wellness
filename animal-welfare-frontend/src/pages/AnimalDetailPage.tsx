@@ -90,11 +90,18 @@ export function AnimalDetailPage() {
         <div className="grid lg:grid-cols-2 gap-10">
           {/* Image gallery */}
           <div>
-            <div className="relative rounded-2xl overflow-hidden bg-white shadow-sm border border-sage-100 h-[420px]">
+            <div className="relative rounded-2xl overflow-hidden bg-cream-50 shadow-sm border border-sage-100 h-[420px] flex items-center justify-center">
+              {/* Blurred background image */}
+              <img
+                src={resolveImageUrl(images[activeImg]?.imageUrl)}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover blur-xl opacity-20 scale-105 pointer-events-none"
+              />
+              {/* Actual image */}
               <img
                 src={resolveImageUrl(images[activeImg]?.imageUrl)}
                 alt={animal.name}
-                className="w-full h-full object-cover transition-opacity duration-300"
+                className="relative max-w-full max-h-full object-contain z-10 transition-opacity duration-300"
               />
 
               {images.length > 1 && (
