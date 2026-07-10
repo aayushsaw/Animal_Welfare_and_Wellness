@@ -19,9 +19,11 @@ export function resolveImageUrl(url: string | undefined | null): string {
   if (!url) return '/placeholder-animal.jpg'
   // Already absolute (Cloudinary CDN)
   if (url.startsWith('http://') || url.startsWith('https://')) return url
-  // Relative path served by Spring Boot static resources — Vite proxy handles it
-  if (url.startsWith('/')) return url
-  return `/${url}`
+  
+  const baseUrl = import.meta.env.VITE_API_URL || ''
+  // Relative path served by Spring Boot static resources
+  if (url.startsWith('/')) return `${baseUrl}${url}`
+  return `${baseUrl}/${url}`
 }
 
 import type { AnimalImage } from '@/types/animal'
