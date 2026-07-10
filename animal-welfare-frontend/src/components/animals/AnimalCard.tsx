@@ -15,6 +15,7 @@ const GENDER_ICON: Record<string, string> = {
 
 const STATUS_BADGE: Record<string, string> = {
   AVAILABLE: 'bg-forest-100 text-forest-700',
+  PENDING_APPROVAL: 'bg-yellow-100 text-yellow-800',
   PENDING: 'bg-orange-100 text-orange-700',
   ADOPTED: 'bg-gray-100 text-gray-600',
 }
@@ -49,7 +50,13 @@ export function AnimalCard({ animal }: AnimalCardProps) {
         <span
           className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_BADGE[animal.status]}`}
         >
-          {animal.status === 'AVAILABLE' ? 'Available' : animal.status === 'PENDING' ? 'Pending' : 'Adopted'}
+          {animal.status === 'AVAILABLE'
+            ? 'Available'
+            : animal.status === 'PENDING_APPROVAL'
+            ? 'Pending Approval'
+            : animal.status === 'PENDING'
+            ? 'Pending'
+            : 'Adopted'}
         </span>
 
         {/* Category badge */}
