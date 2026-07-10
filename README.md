@@ -175,6 +175,26 @@ npx playwright test
 
 ---
 
+## 🌐 Production Deployment & Environment Variables
+
+The platform is optimized for zero-overhead deployment on platforms like Render (for containerized backend services) and Vercel (for frontend static SPA hosting).
+
+### Backend Production Environment Variables
+| Variable | Description | Example / Recommended Value |
+| :--- | :--- | :--- |
+| `SPRING_DATASOURCE_URL` | PostgreSQL connection string | `jdbc:postgresql://<host>:<port>/<dbname>` |
+| `SPRING_DATASOURCE_USERNAME` | Database username | `db_user` |
+| `SPRING_DATASOURCE_PASSWORD` | Database password | `secure_password` |
+| `JWT_SECRET` | Secret key used for signing HS256 tokens | *Custom 256-bit secure secret key* |
+| `CLOUDINARY_URL` | Unified Cloudinary credentials string | `cloudinary://<api_key>:<api_secret>@<cloud_name>` |
+
+### Frontend Production Environment Variables
+| Variable | Description | Value |
+| :--- | :--- | :--- |
+| `VITE_API_URL` | Base URL of the deployed Render backend | `https://your-backend-app.onrender.com` |
+
+---
+
 ## 🔑 Demo Access Credentials
 
 The database is pre-seeded with the following accounts for platform verification:
