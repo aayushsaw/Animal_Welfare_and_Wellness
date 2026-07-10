@@ -81,8 +81,7 @@ public class ImageStorageService {
                 ObjectUtils.asMap(
                         "folder", "animal-welfare/" + folder,
                         "resource_type", "image",
-                        "quality", "auto",
-                        "fetch_format", "auto"
+                        "transformation", "q_auto,f_auto"
                 )
         );
         String url      = (String) result.get("secure_url");
