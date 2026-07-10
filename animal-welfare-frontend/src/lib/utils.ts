@@ -26,20 +26,29 @@ export function resolveImageUrl(url: string | undefined | null): string {
   return `${baseUrl}/${url}`
 }
 
-/** Get optimized Cloudinary URL for thumbnail */
+/** Get optimized Cloudinary URL for card thumbnail.
+ *  Uses c_pad (not c_fill) so portrait, square, and transparent images are
+ *  letterboxed to a 4:3 frame. The b_rgb:FFF8F0 fills transparent alpha areas
+ *  with the brand cream color — no checkerboard ever appears.
+ */
 export function getThumbnailUrl(url: string | undefined | null): string {
   const resolved = resolveImageUrl(url)
   if (resolved.includes('res.cloudinary.com') && resolved.includes('/upload/')) {
-    return resolved.replace('/upload/', '/upload/q_auto,f_auto,c_fill,ar_4:3,w_400/')
+    return resolved.replace(
+      '/upload/',
+      '/upload/q_auto,f_auto,c_pad,b_rgb:FFF8F0,ar_4:3,w_600/',
+    )
   }
   return resolved
 }
 
-/** Get optimized Cloudinary URL for high-resolution preview */
+/** Get optimized Cloudinary URL for high-resolution full-screen viewer.
+ *  c_limit never upscales and never crops — just constrains the longest edge.
+ */
 export function getDetailImageUrl(url: string | undefined | null): string {
   const resolved = resolveImageUrl(url)
   if (resolved.includes('res.cloudinary.com') && resolved.includes('/upload/')) {
-    return resolved.replace('/upload/', '/upload/q_auto,f_auto,c_limit,w_1200/')
+    return resolved.replace('/upload/', '/upload/q_auto,f_auto,c_limit,w_1600/')
   }
   return resolved
 }
