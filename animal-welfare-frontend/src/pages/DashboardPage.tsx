@@ -35,6 +35,13 @@ export function DashboardPage() {
     staleTime: 30 * 1000,
   })
 
+  const { data: pendingListings, isLoading: loadingPendingListings } = useQuery({
+    queryKey: ['animals', 'pending'],
+    queryFn: animalsApi.getPending,
+    enabled: isAdminOrVolunteer,
+    staleTime: 30 * 1000,
+  })
+
   // Mutations
   const cancelMutation = useMutation({
     mutationFn: (id: number) => adoptionsApi.cancel(id),
@@ -61,6 +68,28 @@ export function DashboardPage() {
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || 'Failed to submit review.')
+    },
+  })
+
+  const approveListingMutation = useMutation({
+    mutationFn: (id: number) => animalsApi.approve(id),
+    onSuccess: () => {
+      toast.success('Animal listing approved successfully.')
+      queryClient.invalidateQueries({ queryKey: ['animals'] })
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Failed to approve listing.')
+    },
+  })
+
+  const rejectListingMutation = useMutation({
+    mutationFn: (id: number) => animalsApi.delete(id),
+    onSuccess: () => {
+      toast.success('Animal listing rejected and deleted.')
+      queryClient.invalidateQueries({ queryKey: ['animals'] })
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Failed to reject listing.')
     },
   })
 
@@ -193,6 +222,71 @@ export function DashboardPage() {
                   ))}
                 </div>
               )}
+
+              {/* Subdivision for Stray Postings */}
+              <div className="mt-8 pt-8 border-t border-sage-100">
+                <h3 className="font-serif text-xl text-brown-800 mb-4 flex items-center gap-2">
+                  <span>🐾</span> Stray Postings Awaiting Approval
+                </h3>
+
+                {loadingPendingListings ? (
+                  <div className="space-y-4">
+                    {Array.from({ length: 2 }).map((_, i) => (
+                      <div key={i} className="skeleton h-20 w-full" />
+                    ))}
+                  </div>
+                ) : !pendingListings?.length ? (
+                  <p className="text-brown-500 text-sm py-2">No stray postings currently require approval.</p>
+                ) : (
+                  <div className="divide-y divide-sage-100">
+                    {pendingListings.map((animal) => (
+                      <div key={animal.id} className="py-4 first:pt-0 last:pb-0">
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                          <div className="flex items-center gap-4">
+                            <img
+                              src={resolveImageUrl(animal.primaryImageUrl)}
+                              alt={animal.name}
+                              className="w-14 h-14 object-cover rounded-xl bg-cream-200"
+                            />
+                            <div>
+                              <h3 className="font-semibold text-brown-800">{animal.name || 'Unnamed Stray'}</h3>
+                              <p className="text-xs text-brown-500 mt-0.5">
+                                Category: <span className="font-medium text-brown-700">{animal.category}</span> | Location: <span className="font-medium text-brown-700">{animal.location}</span>
+                              </p>
+                              {animal.description && (
+                                <p className="text-xs text-brown-600 truncate max-w-md mt-1">
+                                  {animal.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => approveListingMutation.mutate(animal.id!)}
+                              disabled={approveListingMutation.isPending}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-forest-500 hover:bg-forest-600 text-white rounded-lg text-xs font-semibold"
+                            >
+                              <Check className="w-3.5 h-3.5" /> Approve
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm('Are you sure you want to reject and delete this listing?')) {
+                                  rejectListingMutation.mutate(animal.id!)
+                                }
+                              }}
+                              disabled={rejectListingMutation.isPending}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-semibold"
+                            >
+                              <X className="w-3.5 h-3.5" /> Reject
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

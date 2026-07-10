@@ -64,4 +64,14 @@ export const animalsApi = {
     const res = await apiClient.post<ApiResponse<AdoptionResponse>>(`/animals/${id}/adopt`, data)
     return res.data.data
   },
+
+  getPending: async (): Promise<AnimalResponse[]> => {
+    const res = await apiClient.get<ApiResponse<AnimalResponse[]>>('/animals/pending')
+    return res.data.data
+  },
+
+  approve: async (id: number): Promise<AnimalResponse> => {
+    const res = await apiClient.put<ApiResponse<AnimalResponse>>(`/animals/${id}/approve`)
+    return res.data.data
+  },
 }
