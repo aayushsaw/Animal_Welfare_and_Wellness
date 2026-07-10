@@ -175,6 +175,29 @@ public class AnimalService {
         return AnimalResponse.from(animalRepository.save(animal));
     }
 
+    /** Archive an animal listing */
+    @Transactional
+    public AnimalResponse archiveListing(Long id, String username) {
+        Animal animal = animalRepository.findByIdWithImages(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Animal", id));
+        assertCanModify(animal, username);
+        animal.setStatus(AnimalStatus.ARCHIVED);
+        return AnimalResponse.from(animalRepository.save(animal));
+    }
+
+    /** Restore an archived animal listing */
+    @Transactional
+    public AnimalResponse restoreListing(Long id, String username) {
+        Animal animal = animalRepository.findByIdWithImages(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Animal", id));
+        assertCanModify(animal, username);
+        if (animal.getStatus() != AnimalStatus.ARCHIVED) {
+            throw new BusinessException("Listing is not archived");
+        }
+        animal.setStatus(AnimalStatus.AVAILABLE);
+        return AnimalResponse.from(animalRepository.save(animal));
+    }
+
     /** Get all pending animal listings — Admin/Volunteer only */
     @Transactional(readOnly = true)
     public List<AnimalResponse> getPendingListings(String username) {

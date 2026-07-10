@@ -15,6 +15,7 @@ public class UserProfileResponse {
     private String email;
     private Set<String> roles;
     private boolean emailVerified;
+    private boolean accountLocked;
     private LocalDateTime createdAt;
     private long animalsPosted;
     private long adoptionsCompleted;
@@ -27,6 +28,7 @@ public class UserProfileResponse {
         r.username      = user.getUsername();
         r.email         = user.getEmail();
         r.emailVerified = user.isEmailVerified();
+        r.accountLocked = user.isAccountLocked();
         r.createdAt     = user.getCreatedAt();
         r.roles         = user.getRoles().stream()
                 .map(role -> role.getName().replace("ROLE_", ""))
@@ -42,6 +44,7 @@ public class UserProfileResponse {
     public String getEmail()             { return email; }
     public Set<String> getRoles()        { return roles; }
     public boolean isEmailVerified()     { return emailVerified; }
+    public boolean isAccountLocked()     { return accountLocked; }
     public LocalDateTime getCreatedAt()  { return createdAt; }
     public long getAnimalsPosted()       { return animalsPosted; }
     public long getAdoptionsCompleted()  { return adoptionsCompleted; }

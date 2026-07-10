@@ -98,7 +98,7 @@ public class Animal {
     }
 
     public enum AnimalStatus {
-        AVAILABLE, PENDING_APPROVAL, PENDING, ADOPTED, RESCUED, DECEASED
+        AVAILABLE, PENDING_APPROVAL, PENDING, ADOPTED, RESCUED, DECEASED, ARCHIVED
     }
 
     // ---- Constructors ----

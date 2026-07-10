@@ -147,6 +147,26 @@ public class AnimalApiController {
         return ResponseEntity.ok(ApiResponse.success("Animal listing approved successfully", approved));
     }
 
+    @Operation(summary = "Archive an animal listing",
+               security = @SecurityRequirement(name = "bearerAuth"))
+    @PutMapping("/{id}/archive")
+    public ResponseEntity<ApiResponse<AnimalResponse>> archiveListing(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        AnimalResponse archived = animalService.archiveListing(id, userDetails.getUsername());
+        return ResponseEntity.ok(ApiResponse.success("Animal listing archived successfully", archived));
+    }
+
+    @Operation(summary = "Restore an archived animal listing",
+               security = @SecurityRequirement(name = "bearerAuth"))
+    @PutMapping("/{id}/restore")
+    public ResponseEntity<ApiResponse<AnimalResponse>> restoreListing(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        AnimalResponse restored = animalService.restoreListing(id, userDetails.getUsername());
+        return ResponseEntity.ok(ApiResponse.success("Animal listing restored successfully", restored));
+    }
+
     @Operation(summary = "Get all pending animal listings — Admin/Volunteer only",
                security = @SecurityRequirement(name = "bearerAuth"))
     @PreAuthorize("hasAnyRole('ADMIN', 'VOLUNTEER')")
