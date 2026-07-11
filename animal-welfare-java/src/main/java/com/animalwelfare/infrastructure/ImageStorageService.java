@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -45,6 +46,20 @@ public class ImageStorageService {
      * @return UploadResult with public URL and publicId for future deletion
      */
     public UploadResult upload(MultipartFile file, String folder) throws IOException {
+        // Validate that it is a safe image extension and content type
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new com.animalwelfare.exception.BusinessException("Only image uploads are allowed!");
+        }
+        
+        String originalName = file.getOriginalFilename();
+        if (originalName != null && originalName.contains(".")) {
+            String ext = originalName.substring(originalName.lastIndexOf(".")).toLowerCase();
+            if (!List.of(".jpg", ".jpeg", ".png", ".webp", ".gif").contains(ext)) {
+                throw new com.animalwelfare.exception.BusinessException("Invalid image file format! Allowed formats: JPG, JPEG, PNG, WEBP, GIF.");
+            }
+        }
+
         if (isCloudinaryConfigured()) {
             return uploadToCloudinary(file, folder);
         } else {
