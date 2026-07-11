@@ -193,6 +193,9 @@ The platform is optimized for zero-overhead deployment on platforms like Render 
 | :--- | :--- | :--- |
 | `VITE_API_URL` | Base URL of the deployed Render backend | `https://your-backend-app.onrender.com` |
 
+> [!WARNING]
+> **Git History Secret Security Note**: If you previously had real secrets hardcoded in your local files and committed them, those values might still remain in the Git history log. Ensure that any previously committed credentials (such as DB passwords, JWT secrets, or Cloudinary API keys) are **rotated immediately** upon production launch.
+
 ---
 
 ## 🔑 Demo Access Credentials

@@ -58,3 +58,9 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+
+# AI agent local cache
+.gemini/
+.agents/
+*.local
+.env.*
