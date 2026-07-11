@@ -33,6 +33,7 @@ public class AnimalResponse {
     private List<ImageInfo> images;
     private PostedByInfo postedBy;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     // ---- Static factory from entity ----
     public static AnimalResponse from(Animal animal) {
@@ -52,6 +53,7 @@ public class AnimalResponse {
         r.status         = animal.getStatus() != null ? animal.getStatus().name() : null;
         r.primaryImageUrl = animal.getPrimaryImageUrl();
         r.createdAt      = animal.getCreatedAt();
+        r.updatedAt      = animal.getUpdatedAt();
 
         r.images = animal.getImages().stream()
                 .map(ImageInfo::from)
@@ -119,4 +121,5 @@ public class AnimalResponse {
     public List<ImageInfo> getImages(){ return images; }
     public PostedByInfo getPostedBy() { return postedBy; }
     public LocalDateTime getCreatedAt(){ return createdAt; }
+    public LocalDateTime getUpdatedAt(){ return updatedAt; }
 }
