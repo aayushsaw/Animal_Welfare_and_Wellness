@@ -32,6 +32,7 @@ export interface AnimalResponse {
   images: AnimalImage[]
   postedBy?: PostedByInfo
   createdAt: string
+  updatedAt?: string
 }
 
 export type AnimalRequest = components['schemas']['AnimalRequest']

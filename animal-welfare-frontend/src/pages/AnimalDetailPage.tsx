@@ -4,11 +4,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
   MapPin, Calendar, Heart, ArrowLeft, ChevronLeft, ChevronRight, 
   Loader2, Trash2, Edit3, Archive, RefreshCw, X, ZoomIn, ZoomOut, Maximize,
-  User, Clock
+  User, Clock, ShieldAlert, AlertTriangle
 } from 'lucide-react'
 import { animalsApi } from '@/api/animals.api'
 import { useAuthStore } from '@/store/auth.store'
-import { resolveImageUrl, getDetailImageUrl, CATEGORY_LABELS, HEALTH_STATUS_CONFIG, formatDate } from '@/lib/utils'
+import { resolveImageUrl, getDetailImageUrl, CATEGORY_LABELS, HEALTH_STATUS_CONFIG, formatDate, timeAgo } from '@/lib/utils'
 import { usePageTitle } from '@/lib/usePageTitle'
 import { toast } from 'sonner'
 import type { AnimalImage, AnimalRequest, HealthStatus, AnimalCategory, AnimalGender } from '@/types/animal'
@@ -66,6 +66,18 @@ export function AnimalDetailPage() {
 
   // Dynamic page title — updates when animal data loads
   usePageTitle(animal ? animal.name : 'Animal Profile')
+
+  // Lock page background scrolling while fullscreen lightbox is open
+  useEffect(() => {
+    if (isFullscreen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isFullscreen])
 
   // Keyboard navigation for fullscreen modal (declared here so animal is in scope)
   useEffect(() => {
@@ -184,7 +196,7 @@ export function AnimalDetailPage() {
   const resolvedUrl = resolveImageUrl(activeImage?.imageUrl)
 
   const isOwner = animal.postedBy?.username === user?.username
-  const isAdmin = hasRole('ADMIN')
+  const isAdmin = hasRole('ROLE_ADMIN')
   const canManage = isOwner || isAdmin
 
   const startEditing = () => {
@@ -450,26 +462,69 @@ export function AnimalDetailPage() {
 
                 {/* ── Administrative & Owner Management Panel ── */}
                 {canManage && (
-                  <div className="pt-4 border-t border-sage-100 space-y-4">
-                    {/* Header with poster attribution */}
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-xs uppercase tracking-wider font-bold text-brown-500">Moderation Controls</h4>
-                      <div className="flex items-center gap-3 text-[10px] text-brown-400 font-medium">
-                        <span className="flex items-center gap-1">
-                          <User className="w-3 h-3" />
-                          {animal.postedBy?.username ?? 'unknown'}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {formatDate(animal.createdAt)}
+                  <div className="bg-white p-5 rounded-2xl border border-orange-200/60 bg-gradient-to-br from-white to-orange-50/20 space-y-4 shadow-sm">
+                    <div className="flex items-center justify-between pb-3 border-b border-sage-100/60">
+                      <h4 className="text-xs uppercase tracking-wider font-extrabold text-brown-600 flex items-center gap-1.5">
+                        <ShieldAlert className="w-3.5 h-3.5 text-orange-500" />
+                        Moderation Controls
+                      </h4>
+                      <span className="text-[10px] bg-orange-100 text-orange-800 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        {isAdmin ? 'Admin View' : 'Owner View'}
+                      </span>
+                    </div>
+
+                    {/* Metadata Fields */}
+                    <div className="grid grid-cols-2 gap-3.5 text-xs text-brown-500 font-medium">
+                      <div className="space-y-1">
+                        <span className="block text-[10px] uppercase font-bold text-brown-400">Rescuer Info</span>
+                        <div className="flex items-center gap-1.5 text-brown-700 font-semibold truncate">
+                          <User className="w-3.5 h-3.5 text-sage-500 shrink-0" />
+                          <span className="truncate" title={animal.postedBy?.fullName || animal.postedBy?.username}>
+                            {animal.postedBy?.fullName || animal.postedBy?.username || 'Unknown'}
+                          </span>
+                        </div>
+                        <span className="block text-[9px] text-brown-400 truncate">@{animal.postedBy?.username || 'unknown'}</span>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <span className="block text-[10px] uppercase font-bold text-brown-400">Status</span>
+                        <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white border border-sage-200 text-brown-700">
+                          <div className={`w-1.5 h-1.5 rounded-full ${
+                            animal.status === 'AVAILABLE' ? 'bg-emerald-500' :
+                            animal.status === 'PENDING' ? 'bg-orange-500' :
+                            animal.status === 'ADOPTED' ? 'bg-blue-500' :
+                            animal.status === 'ARCHIVED' ? 'bg-red-500' : 'bg-gray-400'
+                          }`} />
+                          {STATUS_LABELS[animal.status] || animal.status}
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <span className="block text-[10px] uppercase font-bold text-brown-400">Created Date</span>
+                        <div className="flex items-center gap-1.5 text-brown-700 font-semibold">
+                          <Clock className="w-3.5 h-3.5 text-sage-400 shrink-0" />
+                          <span>{formatDate(animal.createdAt)}</span>
+                        </div>
+                        <span className="block text-[9px] text-brown-400">{timeAgo(animal.createdAt)}</span>
+                      </div>
+
+                      <div className="space-y-1">
+                        <span className="block text-[10px] uppercase font-bold text-brown-400">Last Updated</span>
+                        <div className="flex items-center gap-1.5 text-brown-700 font-semibold">
+                          <RefreshCw className="w-3.5 h-3.5 text-sage-400 shrink-0" />
+                          <span>{animal.updatedAt ? formatDate(animal.updatedAt) : formatDate(animal.createdAt)}</span>
+                        </div>
+                        <span className="block text-[9px] text-brown-400">
+                          {animal.updatedAt ? timeAgo(animal.updatedAt) : timeAgo(animal.createdAt)}
                         </span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2">
+                    {/* Action buttons */}
+                    <div className="grid grid-cols-3 gap-2.5 pt-1.5">
                       <button
                         onClick={startEditing}
-                        className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-white hover:bg-sage-50 text-brown-700 border border-sage-200 rounded-xl text-xs font-semibold transition-all"
+                        className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-white hover:bg-sage-50 text-brown-700 border border-sage-200 rounded-xl text-xs font-semibold transition-all hover:shadow-xs focus-visible:outline-2"
                       >
                         <Edit3 className="w-3.5 h-3.5 text-forest-600" />
                         Edit
@@ -479,7 +534,7 @@ export function AnimalDetailPage() {
                         <button
                           onClick={() => archiveMutation.mutate()}
                           disabled={archiveMutation.isPending}
-                          className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-white hover:bg-orange-50 text-orange-700 border border-orange-200 rounded-xl text-xs font-semibold transition-all disabled:opacity-50"
+                          className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-white hover:bg-orange-50 text-orange-700 border border-orange-200 rounded-xl text-xs font-semibold transition-all disabled:opacity-50 hover:shadow-xs focus-visible:outline-2"
                         >
                           {archiveMutation.isPending
                             ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -490,7 +545,7 @@ export function AnimalDetailPage() {
                         <button
                           onClick={() => restoreMutation.mutate()}
                           disabled={restoreMutation.isPending}
-                          className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-white hover:bg-forest-50 text-forest-700 border border-forest-200 rounded-xl text-xs font-semibold transition-all disabled:opacity-50"
+                          className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-white hover:bg-forest-50 text-forest-700 border border-forest-200 rounded-xl text-xs font-semibold transition-all disabled:opacity-50 hover:shadow-xs focus-visible:outline-2"
                         >
                           {restoreMutation.isPending
                             ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -501,7 +556,7 @@ export function AnimalDetailPage() {
 
                       <button
                         onClick={() => setShowDeleteConfirm(true)}
-                        className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-xs font-semibold transition-all"
+                        className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-xs font-semibold transition-all hover:shadow-xs focus-visible:outline-2"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                         Delete
@@ -759,27 +814,53 @@ export function AnimalDetailPage() {
       {/* ── Custom Deletion Confirmation Dialog ── */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white rounded-2xl border border-sage-100 max-w-sm w-full p-6 space-y-4 shadow-xl">
-            <h3 className="font-serif text-xl font-bold text-brown-800">Delete Listing Permanently?</h3>
-            <p className="text-xs text-brown-500 leading-relaxed">
-              Are you sure you want to permanently delete <strong>{animal.name}</strong>'s stray listing? This action deletes all attachments from Cloudinary and cannot be undone.
-            </p>
-            <div className="flex gap-3 pt-2">
+          <div className="bg-white rounded-3xl border border-red-100 max-w-sm w-full p-6 space-y-5 shadow-2xl">
+            {/* Header / Warning icon */}
+            <div className="flex flex-col items-center text-center space-y-2">
+              <div className="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center border border-red-200">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <h3 className="font-serif text-lg font-bold text-brown-800">Permanent Deletion</h3>
+            </div>
+
+            {/* Animal Card Preview */}
+            <div className="flex items-center gap-3 p-3 bg-red-50/20 border border-red-100/60 rounded-2xl">
+              <img 
+                src={resolvedUrl} 
+                alt={animal.name}
+                className="w-16 h-16 object-cover rounded-xl bg-cream-200 border border-sage-100 shrink-0" 
+              />
+              <div className="min-w-0">
+                <p className="font-serif font-bold text-sm text-brown-800 truncate">{animal.name}</p>
+                <p className="text-[10px] text-brown-400 capitalize">{animal.category.toLowerCase()} · {animal.breed || 'Unknown breed'}</p>
+              </div>
+            </div>
+
+            {/* Warning Message */}
+            <div className="space-y-2 bg-amber-50/50 border border-amber-200/50 p-3 rounded-2xl">
+              <p className="text-[11px] text-amber-800 leading-relaxed font-semibold flex gap-1.5 items-start">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+                <span>This action deletes all listings, rescue photos from Cloudinary, and associated database constraints. This cannot be undone.</span>
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 py-2.5 rounded-xl border border-sage-200 text-brown-600 text-xs font-semibold hover:bg-cream-50 transition-colors"
+                className="flex-1 py-3 rounded-xl border border-sage-200 text-brown-600 text-xs font-semibold hover:bg-cream-50 transition-colors focus-visible:outline-2"
               >
                 Cancel
               </button>
               <button
                 onClick={() => deleteMutation.mutate()}
                 disabled={deleteMutation.isPending}
-                className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
+                className="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 focus-visible:outline-2"
               >
                 {deleteMutation.isPending ? (
                   <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Deleting…</>
                 ) : (
-                  'Confirm Delete'
+                  'Delete Listing'
                 )}
               </button>
             </div>
