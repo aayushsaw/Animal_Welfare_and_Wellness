@@ -123,7 +123,18 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .headers(headers -> {
-                headers.frameOptions(frame -> frame.sameOrigin()); // for H2 console
+                boolean isProd = java.util.Arrays.asList(env.getActiveProfiles()).contains("prod");
+                if (isProd) {
+                    headers.frameOptions(frame -> frame.deny());
+                    headers.httpStrictTransportSecurity(hsts -> hsts
+                        .includeSubDomains(true)
+                        .maxAgeInSeconds(31536000)
+                    );
+                } else {
+                    headers.frameOptions(frame -> frame.sameOrigin()); // for H2 console
+                    headers.httpStrictTransportSecurity(hsts -> hsts.disable());
+                }
+                
                 headers.contentSecurityPolicy(csp -> csp.policyDirectives(
                     "default-src 'self'; " +
                     "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
@@ -133,16 +144,6 @@ public class SecurityConfig {
                     "frame-ancestors 'self';"
                 ));
                 headers.referrerPolicy(referrer -> referrer.policy(ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN));
-                
-                boolean isProd = java.util.Arrays.asList(env.getActiveProfiles()).contains("prod");
-                if (isProd) {
-                    headers.httpStrictTransportSecurity(hsts -> hsts
-                        .includeSubDomains(true)
-                        .maxAgeInSeconds(31536000)
-                    );
-                } else {
-                    headers.httpStrictTransportSecurity(hsts -> hsts.disable());
-                }
             });
 
         return http.build();
@@ -151,7 +152,15 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("http://localhost:3000", "http://localhost:5173", "*"));
+        
+        String originsProp = env.getProperty("app.cors.allowed-origins");
+        if (originsProp != null && !originsProp.isBlank()) {
+            config.setAllowedOriginPatterns(List.of(originsProp.split(",")));
+        } else {
+            // Restrictive development defaults
+            config.setAllowedOriginPatterns(List.of("http://localhost:3000", "http://localhost:5173"));
+        }
+        
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

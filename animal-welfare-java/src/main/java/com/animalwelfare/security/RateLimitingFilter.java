@@ -21,12 +21,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * IP-based rate limiting filter using Bucket4j.
- * Configured by default to allow 100 requests per minute per IP.
+ * Enforces security gates:
+ * - General endpoints: Max 100 requests per minute per IP
+ * - Authentication (login/register): Max 5 attempts per minute per IP to prevent brute force
  */
 @Component
 public class RateLimitingFilter extends OncePerRequestFilter {
 
-    private final Map<String, Bucket> cache = new ConcurrentHashMap<>();
+    private final Map<String, Bucket> generalCache = new ConcurrentHashMap<>();
+    private final Map<String, Bucket> authCache = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${app.rate-limit.capacity:100}")
@@ -42,32 +45,54 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        // Skip actuator endpoints from rate limiting to prevent health checking tools from being blocked
         String path = request.getRequestURI();
+        // Skip actuator endpoints from rate limiting to prevent health checking tools from being blocked
         if (path.startsWith("/actuator")) {
             filterChain.doFilter(request, response);
             return;
         }
 
         String ip = getClientIp(request);
-        Bucket bucket = cache.computeIfAbsent(ip, k -> createNewBucket());
 
-        if (bucket.tryConsume(1)) {
-            filterChain.doFilter(request, response);
-        } else {
-            response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-
-            ApiResponse<Void> apiResponse = ApiResponse.error("Too many requests. Please try again later.");
-            response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
+        // Strict rate limit for auth endpoints to prevent brute force
+        if (path.startsWith("/api/v1/auth/login") || path.startsWith("/api/v1/auth/register")) {
+            Bucket authBucket = authCache.computeIfAbsent(ip, k -> createAuthBucket());
+            if (!authBucket.tryConsume(1)) {
+                sendErrorResponse(response, "Too many authentication attempts. Please wait 1 minute before trying again.");
+                return;
+            }
         }
+
+        // Global threshold check
+        Bucket generalBucket = generalCache.computeIfAbsent(ip, k -> createGeneralBucket());
+        if (!generalBucket.tryConsume(1)) {
+            sendErrorResponse(response, "Too many requests. Please try again later.");
+            return;
+        }
+
+        filterChain.doFilter(request, response);
     }
 
-    private Bucket createNewBucket() {
+    private Bucket createGeneralBucket() {
         return Bucket.builder()
                 .addLimit(Bandwidth.classic(capacity, Refill.intervally(capacity, Duration.ofMinutes(durationMinutes))))
                 .build();
+    }
+
+    private Bucket createAuthBucket() {
+        // Enforce 5 authentication attempts per minute max
+        return Bucket.builder()
+                .addLimit(Bandwidth.classic(5, Refill.intervally(5, Duration.ofMinutes(1))))
+                .build();
+    }
+
+    private void sendErrorResponse(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        ApiResponse<Void> apiResponse = ApiResponse.error(message);
+        response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
     }
 
     private String getClientIp(HttpServletRequest request) {

@@ -3,7 +3,9 @@ package com.animalwelfare.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -29,11 +31,28 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
+    private final Environment env;
+
     @Value("${app.jwt.secret}")
     private String secretKey;
 
     @Value("${app.jwt.expiration-ms}")
     private long jwtExpirationMs;
+
+    public JwtService(Environment env) {
+        this.env = env;
+    }
+
+    @PostConstruct
+    public void validateKey() {
+        if (secretKey == null || secretKey.isBlank()) {
+            throw new IllegalStateException("JWT Secret Key (JWT_SECRET) is not configured! The application cannot start.");
+        }
+        boolean isProd = java.util.Arrays.asList(env.getActiveProfiles()).contains("prod");
+        if (isProd && secretKey.contains("ThisIsAVeryLongSecretKey")) {
+            throw new IllegalStateException("JWT Secret Key (JWT_SECRET) is still set to the default fallback in production profile! Change the secret key immediately.");
+        }
+    }
 
     public String generateToken(UserDetails userDetails) {
         return generateToken(new HashMap<>(), userDetails);
