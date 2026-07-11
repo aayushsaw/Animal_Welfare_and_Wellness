@@ -26,4 +26,8 @@ export const usersApi = {
   delete: async (id: number): Promise<void> => {
     await apiClient.delete(`/users/${id}`)
   },
+
+  deleteMe: async (): Promise<void> => {
+    await apiClient.delete('/users/me')
+  },
 }

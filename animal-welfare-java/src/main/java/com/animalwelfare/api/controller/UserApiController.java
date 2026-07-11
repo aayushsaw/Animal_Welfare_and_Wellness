@@ -4,6 +4,9 @@ import com.animalwelfare.api.dto.user.UserProfileResponse;
 import com.animalwelfare.api.response.ApiResponse;
 import com.animalwelfare.domain.model.User;
 import com.animalwelfare.domain.repository.UserRepository;
+import com.animalwelfare.domain.repository.AnimalRepository;
+import com.animalwelfare.domain.repository.AdoptionRequestRepository;
+import com.animalwelfare.domain.repository.RefreshTokenRepository;
 import com.animalwelfare.exception.ResourceNotFoundException;
 import com.animalwelfare.service.AnimalService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,10 +38,20 @@ import java.util.stream.Collectors;
 public class UserApiController {
 
     private final UserRepository userRepository;
+    private final AnimalRepository animalRepository;
+    private final AdoptionRequestRepository adoptionRequestRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final AnimalService animalService;
 
-    public UserApiController(UserRepository userRepository, AnimalService animalService) {
+    public UserApiController(UserRepository userRepository,
+                             AnimalRepository animalRepository,
+                             AdoptionRequestRepository adoptionRequestRepository,
+                             RefreshTokenRepository refreshTokenRepository,
+                             AnimalService animalService) {
         this.userRepository = userRepository;
+        this.animalRepository = animalRepository;
+        this.adoptionRequestRepository = adoptionRequestRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
         this.animalService  = animalService;
     }
 
@@ -101,6 +115,7 @@ public class UserApiController {
 
     @Operation(summary = "Delete a user — Admin only")
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
         User user = userRepository.findById(id)
@@ -111,7 +126,46 @@ public class UserApiController {
             throw new com.animalwelfare.exception.BusinessException("Cannot delete an Administrator account.");
         }
         
-        userRepository.delete(user);
+        processUserPurge(user);
         return ResponseEntity.ok(ApiResponse.success("User deleted successfully", null));
+    }
+
+    @Operation(summary = "Delete my account (GDPR Right to be Forgotten)")
+    @Transactional
+    @DeleteMapping("/me")
+    public ResponseEntity<ApiResponse<Void>> deleteMe(@AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", userDetails.getUsername()));
+        
+        boolean isAdmin = user.getRoles().stream().anyMatch(role -> role.getName().equals("ROLE_ADMIN"));
+        if (isAdmin) {
+            throw new com.animalwelfare.exception.BusinessException("Cannot delete an Administrator account.");
+        }
+        
+        processUserPurge(user);
+        return ResponseEntity.ok(ApiResponse.success("Your account has been deleted/anonymized successfully", null));
+    }
+
+    private void processUserPurge(User user) {
+        // 1. Revoke all refresh tokens
+        refreshTokenRepository.revokeAllUserTokens(user);
+
+        // 2. Check if user has active database records
+        long postsCount = animalRepository.countByPostedBy(user);
+        long requestsCount = adoptionRequestRepository.countByRequester(user);
+
+        if (postsCount > 0 || requestsCount > 0) {
+            // Anonymize user to satisfy GDPR without breaking foreign keys
+            user.setFirstName("Redacted");
+            user.setLastName("User");
+            user.setEmail("redacted-" + user.getId() + "@animalwelfare.org");
+            user.setUsername("deleted_user_" + user.getId());
+            user.setPassword("{noop}redacted_password_" + java.util.UUID.randomUUID().toString());
+            user.setAccountLocked(true);
+            userRepository.save(user);
+        } else {
+            // Delete completely
+            userRepository.delete(user);
+        }
     }
 }

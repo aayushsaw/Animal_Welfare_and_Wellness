@@ -31,6 +31,7 @@ export function DashboardPage() {
   
   // Custom user deletion state
   const [deleteUserConfirmId, setDeleteUserConfirmId] = useState<number | null>(null)
+  const [showDeleteMeConfirm, setShowDeleteMeConfirm] = useState(false)
 
   // ── Queries ──
   const { data: myListings, isLoading: loadingListings } = useQuery({
@@ -153,6 +154,18 @@ export function DashboardPage() {
     },
   })
 
+  const deleteMeMutation = useMutation({
+    mutationFn: () => usersApi.deleteMe(),
+    onSuccess: () => {
+      toast.success('Your account has been deleted/anonymized successfully.')
+      useAuthStore.getState().logout()
+      window.location.href = '/'
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Failed to request account deletion.')
+    },
+  })
+
   return (
     <div className="pt-20 min-h-screen bg-cream-100 pb-16">
       
@@ -165,13 +178,24 @@ export function DashboardPage() {
               Manage stray rescue listings, review incoming adoption applications, and control membership profiles.
             </p>
           </div>
-          <Link
-            to="/animals/post"
-            className="flex items-center gap-2 px-5 py-3 bg-orange-400 hover:bg-orange-300 text-white font-semibold rounded-xl transition-all shadow-sm"
-          >
-            <PlusCircle className="w-5 h-5" />
-            Post Rescued Animal
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              to="/animals/post"
+              className="flex items-center gap-2 px-5 py-3 bg-orange-400 hover:bg-orange-300 text-white font-semibold rounded-xl transition-all shadow-sm"
+            >
+              <PlusCircle className="w-5 h-5" />
+              Post Rescued Animal
+            </Link>
+            {!isAdmin && (
+              <button
+                onClick={() => setShowDeleteMeConfirm(true)}
+                className="flex items-center gap-2 px-4 py-3 bg-red-650 hover:bg-red-500/80 border border-red-300/30 text-white font-semibold rounded-xl transition-all shadow-sm"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete Account
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -671,6 +695,44 @@ export function DashboardPage() {
               >
                 {deleteUserMutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 Confirm Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Self Deletion Confirmation Modal (GDPR Right to be Forgotten) ── */}
+      {showDeleteMeConfirm && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white rounded-3xl border border-red-100 max-w-sm w-full p-6 space-y-5 shadow-2xl">
+            <div className="flex flex-col items-center text-center space-y-2">
+              <div className="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center border border-red-200">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <h3 className="font-serif text-lg font-bold text-brown-800">Delete Your Account?</h3>
+            </div>
+            
+            <p className="text-xs text-brown-500 text-center leading-relaxed">
+              Are you sure you want to request account deletion? Under GDPR guidelines, your personal data will be completely purged or anonymized. This action is irreversible.
+            </p>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setShowDeleteMeConfirm(false)}
+                className="flex-1 py-3 rounded-xl border border-sage-200 text-brown-600 text-xs font-semibold hover:bg-cream-50 transition-colors focus-visible:outline-2"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => deleteMeMutation.mutate()}
+                disabled={deleteMeMutation.isPending}
+                className="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 focus-visible:outline-2"
+              >
+                {deleteMeMutation.isPending ? (
+                  <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Purging…</>
+                ) : (
+                  'Confirm Delete'
+                )}
               </button>
             </div>
           </div>
