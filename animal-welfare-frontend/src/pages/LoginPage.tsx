@@ -92,13 +92,6 @@ export function LoginPage() {
             </p>
           </div>
 
-          {/* Demo credentials notice */}
-          <div className="mb-6 p-3.5 bg-forest-50 border border-forest-200 rounded-xl text-xs text-forest-700">
-            <p className="font-semibold mb-1">Demo accounts:</p>
-            <p>admin / password123 (Admin)</p>
-            <p>aayush / password123 (User)</p>
-          </div>
-
           {/* Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
             <div>
