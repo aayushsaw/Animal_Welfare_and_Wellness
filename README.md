@@ -446,7 +446,7 @@ npm run build   # tsc -b && vite build — must produce 0 TypeScript errors
 4. Add `VITE_API_URL` pointing to the Render backend URL.
 5. Every push to `master` triggers an automatic deployment.
 
-**Live URL:** `https://animal-welfare-frontend.vercel.app`
+**Live URL:** `https://animal-welfare-and-wellness.vercel.app/`
 
 ### Database → Neon (PostgreSQL)
 
